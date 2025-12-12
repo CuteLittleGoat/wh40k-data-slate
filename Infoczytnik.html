@@ -53,7 +53,7 @@
     pointer-events:none;
   }
 
-  /* CRT / Scanlines overlay (delikatne, ale widoczne) */
+  /* CRT / Scanlines overlay */
   .crt::before{
     content:"";
     position:absolute;
@@ -62,12 +62,12 @@
     background:
       repeating-linear-gradient(
         to bottom,
-        rgba(255,255,255,.05) 0px,
-        rgba(255,255,255,.05) 1px,
+        rgba(255,255,255,.06) 0px,
+        rgba(255,255,255,.06) 1px,
         rgba(0,0,0,0) 3px,
         rgba(0,0,0,0) 7px
       );
-    opacity:.24;
+    opacity:.28;
     mix-blend-mode: overlay;
     animation: scanMove 12s linear infinite;
   }
@@ -77,17 +77,17 @@
     inset:-2%;
     pointer-events:none;
     background:
-      radial-gradient(closest-side, rgba(0,0,0,0) 62%, rgba(0,0,0,.65) 100%),
-      rgba(255,255,255,.03);
-    opacity:.60;
+      radial-gradient(closest-side, rgba(0,0,0,0) 60%, rgba(0,0,0,.70) 100%),
+      rgba(255,255,255,.04);
+    opacity:.65;
     animation: flickerBg 9s infinite;
   }
   @keyframes scanMove { 0%{transform:translateY(0)} 100%{transform:translateY(20px)} }
   @keyframes flickerBg {
-    0%,92%,100%{opacity:.60}
-    93%{opacity:.52}
-    95%{opacity:.66}
-    97%{opacity:.56}
+    0%,92%,100%{opacity:.65}
+    93%{opacity:.55}
+    95%{opacity:.72}
+    97%{opacity:.60}
   }
 
   /* Bezpieczne pole na tekst – scroll tylko tutaj */
@@ -106,65 +106,84 @@
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
-  /* ====== NOWE: „TRANSMISSION EFFECT” (puls + drganie) ======
-     Efekt włączamy klasą .tx-on na .screen i trwa kilka sekund.
-  */
+  /* ====== TRANSMISSION EFFECT (mocny) ====== */
 
-  /* Puls jasności (miganie/oddychanie) */
+  /* Puls jasności (mocny: do brightness 2.00) */
   @keyframes txPulse {
     0%   { filter: brightness(1.00); opacity: 1; }
-    10%  { filter: brightness(1.35); opacity: .98; }
-    20%  { filter: brightness(.85); opacity: .92; }
-    32%  { filter: brightness(1.25); opacity: 1; }
-    45%  { filter: brightness(.90); opacity: .94; }
-    60%  { filter: brightness(1.18); opacity: 1; }
-    78%  { filter: brightness(.96); opacity: .98; }
+    8%   { filter: brightness(2.00); opacity: 1; }
+    18%  { filter: brightness(.70); opacity: .85; }
+    30%  { filter: brightness(1.85); opacity: 1; }
+    44%  { filter: brightness(.80); opacity: .88; }
+    60%  { filter: brightness(1.60); opacity: 1; }
+    78%  { filter: brightness(.92); opacity: .95; }
     100% { filter: brightness(1.00); opacity: 1; }
   }
 
-  /* Drganie (bardzo lekkie) */
-  @keyframes txJitter {
+  /* Drganie (15px) – wyraźne */
+  @keyframes txJitter15 {
     0%   { transform: translate(0,0); }
-    8%   { transform: translate(0, 1px); }
-    16%  { transform: translate(1px, 0); }
-    24%  { transform: translate(0,-1px); }
-    32%  { transform: translate(-1px,0); }
-    40%  { transform: translate(0, 1px); }
-    48%  { transform: translate(1px,-1px); }
-    56%  { transform: translate(-1px,1px); }
-    64%  { transform: translate(0,0); }
-    72%  { transform: translate(1px,0); }
-    80%  { transform: translate(0,-1px); }
-    88%  { transform: translate(-1px,0); }
+    10%  { transform: translate( 8px, -6px); }
+    20%  { transform: translate(-10px, 7px); }
+    30%  { transform: translate( 12px, 0px); }
+    40%  { transform: translate(-14px, -4px); }
+    50%  { transform: translate( 6px, 10px); }
+    60%  { transform: translate(-8px, -12px); }
+    70%  { transform: translate( 14px, 6px); }
+    80%  { transform: translate(-12px, 2px); }
+    90%  { transform: translate( 4px, -10px); }
     100% { transform: translate(0,0); }
   }
 
+  /* Efekt włączamy klasą .tx-on na .screen */
   .tx-on{
-    animation: txPulse 5.2s ease-out 1;
+    animation: txPulse 6.0s ease-out 1;
   }
 
-  /* Drganie stosujemy na samym tekście, żeby scroll nie wariował */
+  /* Drganie tylko dla tekstu (żeby scroll nie „skakał” całym boxem) */
   .tx-on .msg,
   .tx-on .prefixRow,
   .tx-on .suffixRow{
-    animation: txJitter .55s linear 10;
+    animation: txJitter15 .6s linear 9;
   }
 
-  /* Prefix / suffix / tekst */
-  .prefixRow, .suffixRow{
+  /* Układ prefix + logo po PRAWEJ */
+  .prefixRow{
     display:flex;
-    align-items:center;
-    gap: 10px;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 12px;
   }
 
-  .prefix, .suffix{
-    color: rgba(255,255,255,.86);
+  .prefix{
+    flex: 1 1 auto;
+    color: rgba(255,255,255,.88);
     font-size: clamp(12px, 2.0vw, 16px);
     letter-spacing: 1.5px;
     margin: 0 0 10px 0;
     white-space: pre-wrap;
   }
-  .suffix{ margin-top: 12px; }
+
+  /* Stałe pole na logo (zachowuje proporcje, nie deformuje) */
+  .logoBox{
+    flex: 0 0 auto;
+    width: 54px;
+    height: 54px;
+    display:none;           /* domyślnie ukryte */
+    align-items:center;
+    justify-content:center;
+  }
+
+  .logo{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    object-position:center;
+    opacity:.95;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.7));
+    pointer-events:none;
+    user-select:none;
+  }
 
   .msg{
     position:relative;
@@ -173,17 +192,20 @@
     white-space: pre-wrap;
     word-break: break-word;
     color: var(--accent);
-    text-shadow: 0 0 14px rgba(0,255,120,.10), 0 2px 6px rgba(0,0,0,.70);
+    text-shadow: 0 0 18px rgba(0,255,120,.18), 0 2px 6px rgba(0,0,0,.70);
   }
 
-  /* miejsce na logo (na razie ukryte, włączymy w następnym kroku) */
-  .logo{
-    width: 34px;
-    height: 34px;
-    object-fit: contain;
-    display:none; /* włączymy później */
-    opacity: .92;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.7));
+  .suffixRow{
+    display:flex;
+    align-items:flex-start;
+  }
+
+  .suffix{
+    color: rgba(255,255,255,.86);
+    font-size: clamp(12px, 2.0vw, 16px);
+    letter-spacing: 1.5px;
+    margin: 12px 0 0 0;
+    white-space: pre-wrap;
   }
 
   /* Audio unlock overlay */
@@ -250,8 +272,10 @@
       <img class="layout-img" id="layoutImg" alt="layout" />
       <div class="screen" id="screen">
         <div class="prefixRow">
-          <img class="logo" id="logo" alt="logo" />
           <div class="prefix" id="prefixLine"></div>
+          <div class="logoBox" id="logoBox">
+            <img class="logo" id="logo" alt="logo" />
+          </div>
         </div>
 
         <div class="msg" id="msg"></div>
@@ -316,17 +340,10 @@
     chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
   };
 
-  // Przygotowane pod przyszłość (foldery w assets/logos/...)
-  // Na razie logo jest ukryte w CSS (display:none). Włączymy w następnym kroku.
+  // LOGO: tylko 2 frakcje, reszta = brak
   const FACTION_LOGO = {
-    inquisition: "assets/logos/inquisition.png",
-    mechanicus:  "assets/logos/mechanicus.png",
-    militarum:   "assets/logos/militarum.png",
-    chaos_undivided: "assets/logos/chaos_undivided.png",
-    khorne:      "assets/logos/khorne.png",
-    nurgle:      "assets/logos/nurgle.png",
-    tzeentch:    "assets/logos/tzeentch.png",
-    slaanesh:    "assets/logos/slaanesh.png",
+    inquisition: "assets/logos/inquisition/Inquisition.png",
+    mechanicus:  "assets/logos/mechanicus/Mechanicus.png"
   };
 
   const el = {
@@ -337,6 +354,7 @@
     prefixLine: document.getElementById("prefixLine"),
     suffixLine: document.getElementById("suffixLine"),
     msg: document.getElementById("msg"),
+    logoBox: document.getElementById("logoBox"),
     logo: document.getElementById("logo"),
     debug: document.getElementById("debug"),
   };
@@ -398,6 +416,17 @@
 
   let currentAr = LAYOUT_AR.default04;
 
+  function setLogoForFaction(key){
+    const src = FACTION_LOGO[key];
+    if(!src){
+      el.logoBox.style.display = "none";
+      el.logo.removeAttribute("src");
+      return;
+    }
+    el.logo.src = src;
+    el.logoBox.style.display = "flex";
+  }
+
   function applyLayout(factionKey, color){
     const key = (factionKey && LAYOUT_BG[factionKey]) ? factionKey : "mechanicus";
 
@@ -415,18 +444,17 @@
     }
     fitPanel(currentAr);
 
-    // LOGO (na razie nie pokazujemy – włączymy w następnym kroku)
-    el.logo.src = FACTION_LOGO[key] || "";
+    setLogoForFaction(key);
   }
 
-  // ====== TRANSMISSION EFFECT (miganie + drganie) ======
+  // TRANSMISSION EFFECT
   let txTimer = null;
   function triggerTransmissionEffect(){
     el.screen.classList.remove("tx-on"); // restart
-    void el.screen.offsetWidth;          // wymuszenie reflow
+    void el.screen.offsetWidth;          // reflow
     el.screen.classList.add("tx-on");
     if(txTimer) clearTimeout(txTimer);
-    txTimer = setTimeout(()=> el.screen.classList.remove("tx-on"), 5400);
+    txTimer = setTimeout(()=> el.screen.classList.remove("tx-on"), 6200);
   }
 
   function showMessage(prefix, text, suffix){
@@ -497,7 +525,7 @@
     dbg("ERROR snapshot: " + (err?.message || err));
   });
 
-  // Start: pokaż layout domyślny, tekst ukryty
+  // Start
   applyLayout("mechanicus", "#00ff66");
   hideTextKeepLayout();
   dbg("ready");
