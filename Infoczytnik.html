@@ -5,72 +5,120 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>WH40k Data-Slate — Infoczytnik</title>
 
+  <!-- Google Fonts (pobierane online; fallback do Calibri/Arial jeśli brak internetu) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
 
   <style>
-    :root{ --accent:#00ff66; --muted: rgba(255,255,255,.78); --font: Calibri, Arial, sans-serif; }
+    :root{
+      --accent:#00ff66;
+      --muted: rgba(255,255,255,.80);
+      --font: Calibri, Arial, sans-serif;
+
+      /* domyślne bezpieczne pole (nadpisywane w JS zależnie od layoutu) */
+      --screen-top: 13%;
+      --screen-right: 12%;
+      --screen-bottom: 20%;
+      --screen-left: 16%;
+
+      --layout-bg: none;
+    }
+
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
-    body{font-family:var(--font); background:#000; color:var(--accent); overflow:hidden;}
+    body{
+      background:#000;
+      color:var(--accent);
+      font-family:var(--font);
+      overflow:hidden; /* brak scrolla strony */
+    }
 
-    /* efekty delikatne */
+    /* delikatne efekty skanowania/migotania – bardzo spokojne */
     body.fx::before{
       content:""; position:fixed; inset:0; pointer-events:none;
-      background:repeating-linear-gradient(to bottom, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 2px, transparent 7px);
-      opacity:.10; mix-blend-mode:overlay; animation:scanMove 14s linear infinite;
+      background:repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.03) 0px,
+        rgba(255,255,255,.03) 1px,
+        transparent 2px,
+        transparent 7px
+      );
+      opacity:.10;
+      mix-blend-mode:overlay;
+      animation:scanMove 14s linear infinite;
     }
     body.fx::after{
       content:""; position:fixed; inset:0; pointer-events:none;
-      background:rgba(255,255,255,.04); opacity:0; animation:flicker 10s infinite;
+      background:rgba(255,255,255,.04);
+      opacity:0;
+      animation:flicker 12s infinite;
     }
     @keyframes scanMove{0%{transform:translateY(0)}100%{transform:translateY(18px)}}
-    @keyframes flicker{0%,93%,100%{opacity:0}94%{opacity:.04}96%{opacity:.01}98%{opacity:.05}}
-
-    /* scroll jest na wrap; start od góry (żeby prefix/suffix nie znikał) */
-    .wrap{
-      height:100%; width:100%;
-      padding: clamp(10px, 3vw, 28px);
-      overflow:auto; -webkit-overflow-scrolling:touch;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
+    @keyframes flicker{
+      0%,92%,100%{opacity:0}
+      93%{opacity:.03}
+      95%{opacity:.01}
+      97%{opacity:.04}
     }
 
-    /* Panel z tłem layoutu */
+    /* “Nowa wiadomość” – lekki glow + mikro przesunięcie (czytelne, nie agresywne) */
+    body.fx-new .msg{ animation: msgGlow 2.8s ease-out 1; }
+    body.fx-new .msg::before, body.fx-new .msg::after{
+      content: attr(data-text);
+      position:absolute; left:0; top:0; width:100%;
+      white-space:pre-wrap; word-break:break-word; pointer-events:none;
+      opacity:.12;
+      filter: blur(.25px);
+    }
+    body.fx-new .msg::before{ transform: translate(-1px, 0); }
+    body.fx-new .msg::after { transform: translate( 1px, 0); }
+
+    @keyframes msgGlow{
+      0%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
+      20%{ text-shadow:0 0 18px rgba(0,255,102,.20), 0 2px 6px rgba(0,0,0,.65); }
+      100%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
+    }
+
+    /* pełnoekranowy kontener bez przewijania */
+    .wrap{
+      height:100%;
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      background:#000;
+    }
+
+    /* panel z tłem (layout) – nieruchomy, scroll tylko w .screen */
     .panel{
-      width:min(1100px,100%);
-      border-radius:18px;
-      box-shadow:0 18px 60px rgba(0,0,0,.55);
-      padding: clamp(14px, 3.5vw, 26px);
-
-      background-color: rgba(0,0,0,.85);
-      background-image: var(--layout-bg);
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-
-      border:1px solid rgba(255,255,255,.14);
+      width: 100vw;
+      height: 100vh;
       position:relative;
       overflow:hidden;
+
+      background-color:#000;
+      background-image: var(--layout-bg);
+      background-size: contain;         /* ważne: zachowuje proporcje obrazka */
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
-    /* lekka ciemna warstwa na tle, żeby tekst był czytelny */
-    .panel::before{
-      content:"";
-      position:absolute; inset:0;
-      background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75));
-      pointer-events:none;
-    }
+    /* bezpieczne pole na tekst – scroll TYLKO tu */
+    .screen{
+      position:absolute;
+      top:    var(--screen-top);
+      right:  var(--screen-right);
+      bottom: var(--screen-bottom);
+      left:   var(--screen-left);
 
-    .frame{
-      position:relative; /* nad overlay */
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:14px;
-      padding: clamp(12px, 3vw, 20px);
-      background:rgba(0,0,0,.18);
-      backdrop-filter: blur(0.5px);
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+
+      padding: clamp(12px, 2.5vw, 22px);
+
+      display:none; /* start: ukryte (ma być widać samo tło) */
     }
 
     .line{
@@ -83,32 +131,17 @@
     }
 
     .msg{
+      position:relative;
       font-size: clamp(18px, 3.8vw, 36px);
       line-height:1.25;
       margin:12px 0;
       white-space:pre-wrap;
       word-break:break-word;
       color:var(--accent);
-      position:relative;
       text-shadow: 0 2px 6px rgba(0,0,0,.65);
     }
 
-    body.fx-new .msg{ animation: msgGlow 2.8s ease-out 1; }
-    body.fx-new .msg::before, body.fx-new .msg::after{
-      content: attr(data-text);
-      position:absolute; left:0; top:0; width:100%;
-      white-space:pre-wrap; word-break:break-word; pointer-events:none;
-      opacity:.16; filter: blur(.25px);
-    }
-    body.fx-new .msg::before{ transform: translate(-1px, 0); }
-    body.fx-new .msg::after{ transform: translate( 1px, 0); }
-    @keyframes msgGlow{
-      0%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
-      20%{ text-shadow:0 0 18px rgba(0,255,102,.20), 0 2px 6px rgba(0,0,0,.65); }
-      100%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
-    }
-
-    /* overlay do odblokowania audio */
+    /* overlay do odblokowania audio (wymóg przeglądarki) */
     .unlock{
       position:fixed; inset:0;
       display:flex; align-items:center; justify-content:center;
@@ -153,60 +186,59 @@
     <div class="box">
       <div class="title">Kliknij raz, aby odblokować dźwięk</div>
       <div class="hint">
-        Przeglądarki często blokują audio, dopóki nie wykonasz w tej karcie żadnej akcji.
+        Przeglądarki blokują audio, dopóki w tej karcie nie wykonasz akcji.
         To jednorazowe.
       </div>
       <div class="tiny">(Kliknij gdziekolwiek na ekranie)</div>
     </div>
   </div>
 
-<div class="wrap" id="wrap">
-  <div class="panel" id="panel">
-    <!-- to jest “bezpieczne pole” na tekst -->
-    <div class="screen" id="screen">
-      <div class="line" id="prefixLine"></div>
-      <div class="msg" id="msg" data-text=""></div>
-      <div class="line" id="suffixLine"></div>
+  <div class="wrap" id="wrap">
+    <div class="panel" id="panel">
+      <div class="screen" id="screen">
+        <div class="line" id="prefixLine"></div>
+        <div class="msg" id="msg" data-text=""></div>
+        <div class="line" id="suffixLine"></div>
+      </div>
     </div>
   </div>
-</div>
-
 
   <div class="debug" id="debug"></div>
 
+  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore-compat.js"></script>
 
   <script>
-    // === AUDIO Z GITHUB PAGES (UWAGA: wielkość liter jak w Twoich plikach) ===
+    // === AUDIO (GitHub Pages). Uwaga: wielkość liter jak w Twoich plikach! ===
     const DEFAULT_PING_URL = "https://cutelittlegoat.github.io/wh40k-data-slate/assets/audio/global/Ping.mp3";
     const DEFAULT_MSG_URL  = "https://cutelittlegoat.github.io/wh40k-data-slate/assets/audio/global/Message.mp3";
 
     // === TŁA (layouty) ===
-    // Inkwizycja ma własny DataSlate_Inq.png, reszta DataSlate_04.png w swoich folderach
+    // Inkwizycja ma własne DataSlate_Inq.png,
+    // reszta używa DataSlate_04.png w swoich folderach.
     const LAYOUT_BG = {
-      mechanicus:     "url('assets/layouts/mechanicus/DataSlate_04.png')",
-      inquisition:    "url('assets/layouts/inquisition/DataSlate_Inq.png')",
-      militarum:      "url('assets/layouts/militarum/DataSlate_04.png')",
-      chaos_undivided:"url('assets/layouts/chaos_undivided/DataSlate_04.png')",
-      khorne:         "url('assets/layouts/khorne/DataSlate_04.png')",
-      nurgle:         "url('assets/layouts/nurgle/DataSlate_04.png')",
-      tzeentch:       "url('assets/layouts/tzeentch/DataSlate_04.png')",
-      slaanesh:       "url('assets/layouts/slaanesh/DataSlate_04.png')",
+      mechanicus:      "url('assets/layouts/mechanicus/DataSlate_04.png')",
+      inquisition:     "url('assets/layouts/inquisition/DataSlate_Inq.png')",
+      militarum:       "url('assets/layouts/militarum/DataSlate_04.png')",
+      chaos_undivided: "url('assets/layouts/chaos_undivided/DataSlate_04.png')",
+      khorne:          "url('assets/layouts/khorne/DataSlate_04.png')",
+      nurgle:          "url('assets/layouts/nurgle/DataSlate_04.png')",
+      tzeentch:        "url('assets/layouts/tzeentch/DataSlate_04.png')",
+      slaanesh:        "url('assets/layouts/slaanesh/DataSlate_04.png')",
     };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
-      authDomain: "wh40k-data-slate.firebaseapp.com",
-      projectId: "wh40k-data-slate",
-      storageBucket: "wh40k-data-slate.firebasestorage.app",
-      messagingSenderId: "382792444120",
-      appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
+    // Bezpieczne marginesy (celowo “zapasowe”, żeby tekst nie wchodził na ramkę/ozdoby)
+    // Jeśli kiedyś będziesz chciał ciaśniej, zmniejszymy procenty.
+    const SCREEN_INSETS = {
+      // DataSlate_Inq ma trochę inne proporcje / ramkę -> osobny preset
+      inquisition: { top:"16%", right:"14%", bottom:"24%", left:"18%" },
+
+      // DataSlate_04: grubsza rama + dół z panelem -> większy zapas
+      default04:   { top:"16%", right:"14%", bottom:"22%", left:"18%" },
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
+    // === Układy (font + fillery) ===
     const LAYOUTS = {
       mechanicus:{ fontStack:'"Share Tech Mono", Calibri, Arial, sans-serif',
         prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
@@ -234,10 +266,25 @@
         suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"] },
     };
 
+    // === Firebase ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
+      authDomain: "wh40k-data-slate.firebaseapp.com",
+      projectId: "wh40k-data-slate",
+      storageBucket: "wh40k-data-slate.firebasestorage.app",
+      messagingSenderId: "382792444120",
+      appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const currentRef = db.collection("dataslate").doc("current");
+
     const el = {
       unlock: document.getElementById("unlock"),
       wrap: document.getElementById("wrap"),
       panel: document.getElementById("panel"),
+      screen: document.getElementById("screen"),
       prefixLine: document.getElementById("prefixLine"),
       suffixLine: document.getElementById("suffixLine"),
       msg: document.getElementById("msg"),
@@ -252,11 +299,10 @@
       el.debug.textContent = (el.debug.textContent + "\n" + line).trim();
     }
 
-    const currentRef = db.collection("dataslate").doc("current");
-    let lastNonce = null;
-
+    // Audio gating
     let audioArmed = false;
-    async function armAudio(){
+    function armAudio(){
+      if (audioArmed) return;
       audioArmed = true;
       el.unlock.style.display = "none";
       dbg("AUDIO ARMED = true");
@@ -265,13 +311,13 @@
     window.addEventListener("keydown", armAudio);
 
     function clampIndex(n, max){
-      const x=Number(n);
+      const x = Number(n);
       if(!Number.isFinite(x)) return 1;
       return Math.min(max, Math.max(1, Math.floor(x)));
     }
 
     async function playUrlOnce(url, kind){
-      dbg(`playUrlOnce(${kind}): ` + url);
+      dbg(`playUrlOnce(${kind}): ${url}`);
       if (!audioArmed){ dbg("BLOCKED: audio not armed"); return; }
       try{
         const a = new Audio(url);
@@ -279,18 +325,10 @@
         await a.play();
         dbg(`OK: playing (${kind})`);
       }catch(e){
-        dbg(`ERROR play(${kind}): ` + (e?.message || e));
+        dbg(`ERROR play(${kind}): ${e?.message || e}`);
       }
     }
 
-    function showBlack(){
-      document.body.classList.remove("fx","fx-new");
-      el.wrap.style.display = "none";
-    }
-    function showPanel(){
-      document.body.classList.add("fx");
-      el.wrap.style.display = "flex";
-    }
     function triggerFX(){
       document.body.classList.add("fx");
       document.body.classList.remove("fx-new");
@@ -300,21 +338,39 @@
     }
 
     function applyLayout(factionKey, fontColor){
-      const cfg = LAYOUTS[factionKey] || LAYOUTS.mechanicus;
+      const key = (factionKey && LAYOUTS[factionKey]) ? factionKey : "mechanicus";
+      const cfg = LAYOUTS[key];
 
-      // font + kolor + tło
       document.documentElement.style.setProperty("--font", cfg.fontStack);
       document.documentElement.style.setProperty("--accent", fontColor || "#00ff66");
 
-      const bg = LAYOUT_BG[factionKey] || LAYOUT_BG.mechanicus || "none";
+      const bg = LAYOUT_BG[key] || LAYOUT_BG.mechanicus || "none";
       document.documentElement.style.setProperty("--layout-bg", bg);
+
+      const insets = (key === "inquisition") ? SCREEN_INSETS.inquisition : SCREEN_INSETS.default04;
+      document.documentElement.style.setProperty("--screen-top", insets.top);
+      document.documentElement.style.setProperty("--screen-right", insets.right);
+      document.documentElement.style.setProperty("--screen-bottom", insets.bottom);
+      document.documentElement.style.setProperty("--screen-left", insets.left);
     }
 
     function getFiller(cfg, idx1based, kind){
-      const arr = kind === "prefix" ? cfg.prefixes : cfg.suffixes;
+      const arr = (kind === "prefix") ? cfg.prefixes : cfg.suffixes;
       const max = arr.length;
       const i = clampIndex(idx1based, max) - 1;
       return arr[i] || "";
+    }
+
+    // Stan spoczynku: widać tło layoutu, ale tekst ukryty
+    function showIdleLayout(){
+      el.prefixLine.textContent = "";
+      el.suffixLine.textContent = "";
+      el.msg.textContent = "";
+      el.msg.setAttribute("data-text","");
+
+      el.screen.style.display = "none";
+      document.body.classList.add("fx");
+      document.body.classList.remove("fx-new");
     }
 
     function renderMessage(data){
@@ -323,32 +379,43 @@
 
       const text = (data && typeof data.text === "string") ? data.text : "";
       if (!text.trim()){
-        showBlack();
+        showIdleLayout();
         return;
       }
 
       applyLayout(factionKey, data.fontColor || "#00ff66");
+
       el.prefixLine.textContent = getFiller(cfg, data.prefixIndex || 1, "prefix");
       el.suffixLine.textContent = getFiller(cfg, data.suffixIndex || 1, "suffix");
       el.msg.textContent = text;
       el.msg.setAttribute("data-text", text);
 
-      showPanel();
+      el.screen.style.display = "block";
       triggerFX();
+      // scroll na górę przy nowej wiadomości
+      el.screen.scrollTop = 0;
     }
 
-    currentRef.onSnapshot((docSnap)=>{
-      if (!docSnap.exists) { dbg("current: doc missing"); showBlack(); return; }
-      const data = docSnap.data() || {};
+    // Subskrypcja Firestore
+    let lastNonce = null;
 
+    currentRef.onSnapshot((docSnap)=>{
+      if (!docSnap.exists) { dbg("current: doc missing"); showIdleLayout(); return; }
+      const data = docSnap.data() || {};
       dbg("current: type=" + data.type + " faction=" + data.faction + " nonce=" + data.nonce);
 
       if (data.nonce && data.nonce === lastNonce) return;
       lastNonce = data.nonce || null;
 
-      if (data.type === "clear") { dbg("action: clear"); showBlack(); return; }
+      if (data.type === "clear") {
+        // zachowaj tło, schowaj tekst
+        if (data.faction) applyLayout(data.faction, data.fontColor || "#00ff66");
+        showIdleLayout();
+        return;
+      }
 
       if (data.type === "ping") {
+        // ping: nie pokazuj tekstu jeśli go nie było – tylko lekki efekt + dźwięk
         triggerFX();
         playUrlOnce(DEFAULT_PING_URL, "ping");
         return;
@@ -361,12 +428,14 @@
       }
     }, (err)=>{
       dbg("ERROR snapshot: " + (err?.message || err));
-      showBlack();
+      showIdleLayout();
     });
 
-    showBlack();
+    // Start: pokaż tło domyślne (np. inkwizycja albo mechanicus) i ukryj tekst
+    applyLayout("inquisition", "#00ff66");
+    showIdleLayout();
+
     dbg("ready. debug=" + debugOn);
   </script>
 </body>
 </html>
-
