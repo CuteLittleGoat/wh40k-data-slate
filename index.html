@@ -1,11 +1,30 @@
 <!doctype html>
-<html>
+<html lang="pl">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>WH40k Data-Slate</title>
+  <style>
+    body{margin:0;background:#000;color:#0f0;font-family:Consolas,monospace;padding:22px}
+    a{color:#8aff8a;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .box{max-width:780px;border:1px solid rgba(0,255,0,.25);border-radius:14px;padding:16px;background:rgba(0,255,0,.04)}
+    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .btn{display:inline-block;padding:12px 14px;border:1px solid rgba(0,255,0,.35);border-radius:12px;background:rgba(0,0,0,.35)}
+    .muted{opacity:.75;font-size:13px;margin-top:10px;line-height:1.35}
+  </style>
 </head>
-<body style="background:black;color:#0f0;font-family:monospace">
-  <h1>WH40k Data-Slate</h1>
-  <p>GitHub Pages działa.</p>
+<body>
+  <div class="box">
+    <h1>WH40k Data-Slate</h1>
+    <div class="row">
+      <a class="btn" href="./GM.html">Otwórz GM</a>
+      <a class="btn" href="./Infoczytnik.html">Otwórz Infoczytnik</a>
+      <a class="btn" href="./Infoczytnik.html?debug=1">Infoczytnik (debug)</a>
+    </div>
+    <div class="muted">
+      Tip: w Infoczytniku kliknij raz ekran, żeby odblokować audio (wymóg Chrome).
+    </div>
+  </div>
 </body>
 </html>
