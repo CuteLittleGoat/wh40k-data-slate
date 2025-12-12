@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WH40k Data-Slate — Infoczytnik</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --accent:#00ff66; --muted: rgba(255,255,255,.70); --font: Calibri, Arial, sans-serif; }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{font-family:var(--font); background:#000; color:var(--accent); overflow:hidden;}
+
+    body.fx::before{
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:repeating-linear-gradient(to bottom, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 2px, transparent 6px);
+      opacity:.10; mix-blend-mode:overlay; animation:scanMove 12s linear infinite;
+    }
+    body.fx::after{
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:rgba(255,255,255,.04); opacity:0; animation:flicker 9s infinite;
+    }
+    @keyframes scanMove{0%{transform:translateY(0)}100%{transform:translateY(18px)}}
+    @keyframes flicker{0%,92%,100%{opacity:0}93%{opacity:.04}95%{opacity:.01}97%{opacity:.05}}
+
+    .wrap{
+      height:100%; width:100%;
+      padding: clamp(10px, 3vw, 28px);
+      overflow:auto; -webkit-overflow-scrolling:touch;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .panel{
+      width:min(1100px,100%);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px;
+      background:rgba(0,0,0,.62);
+      box-shadow:0 18px 60px rgba(0,0,0,.55);
+      padding: clamp(14px, 3.5vw, 26px);
+    }
+    .frame{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      padding: clamp(12px, 3vw, 20px);
+      background:rgba(0,0,0,.18);
+    }
+    .line{
+      color:var(--muted);
+      font-size: clamp(12px, 2.1vw, 16px);
+      letter-spacing:.3px;
+      margin:0 0 8px 0;
+      white-space:pre-wrap;
+    }
+    .msg{
+      font-size: clamp(18px, 3.8vw, 36px);
+      line-height:1.25;
+      margin:12px 0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      color:var(--accent);
+      position:relative;
+    }
+
+    body.fx-new .msg{ animation: msgGlow 2.8s ease-out 1; }
+    body.fx-new .msg::before, body.fx-new .msg::after{
+      content: attr(data-text);
+      position:absolute; left:0; top:0; width:100%;
+      white-space:pre-wrap; word-break:break-word; pointer-events:none;
+      opacity:.18; filter: blur(.25px);
+    }
+    body.fx-new .msg::before{ transform: translate(-1px, 0); }
+    body.fx-new .msg::after{ transform: translate( 1px, 0); }
+    @keyframes msgGlow{
+      0%{ text-shadow:0 0 0 rgba(0,255,102,0); }
+      20%{ text-shadow:0 0 14px rgba(0,255,102,.18); }
+      100%{ text-shadow:0 0 0 rgba(0,255,102,0); }
+    }
+
+    /* Minimalny overlay do odblokowania audio (znika po kliknięciu) */
+    .unlock{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.80);
+      color:rgba(255,255,255,.85);
+      font-family: Calibri, Arial, sans-serif;
+      z-index:1000;
+      padding:24px;
+      text-align:center;
+    }
+    .unlock .box{
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:16px;
+      background:rgba(0,0,0,.35);
+      padding:18px 16px;
+      max-width:540px;
+    }
+    .unlock .title{font-size:18px;margin-bottom:8px;color:#fff}
+    .unlock .hint{font-size:13px;opacity:.75;line-height:1.35}
+    .unlock .tiny{margin-top:10px;font-size:12px;opacity:.6}
+
+    /* Debug overlay (włącz: dopisz ?debug=1 do adresu pliku) */
+    .debug{
+      position:fixed; left:8px; bottom:8px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size:11px;
+      color:rgba(255,255,255,.85);
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:12px;
+      padding:10px;
+      max-width:min(92vw,560px);
+      white-space:pre-wrap;
+      z-index:1100;
+      display:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="unlock" id="unlock">
+    <div class="box">
+      <div class="title">Kliknij raz, aby odblokować dźwięk</div>
+      <div class="hint">
+        Chrome często blokuje odtwarzanie audio w tej karcie, dopóki nie wykonasz tu żadnej akcji.
+        To jednorazowe – po kliknięciu overlay zniknie.
+      </div>
+      <div class="tiny">(Możesz kliknąć gdziekolwiek na ekranie)</div>
+    </div>
+  </div>
+
+  <div class="wrap" id="wrap" style="display:none;">
+    <div class="panel">
+      <div class="frame">
+        <div class="line" id="prefixLine"></div>
+        <div class="msg" id="msg" data-text=""></div>
+        <div class="line" id="suffixLine"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="debug" id="debug"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore-compat.js"></script>
+
+  <script>
+    // === Wbudowane domyślne linki (Twoje) ===
+    const DEFAULT_PING_URL = "https://drive.google.com/uc?export=download&id=17WEFjW2IfpdxkD5mpca1diKzZEtfhjjS";
+    const DEFAULT_MSG_URL  = "https://drive.google.com/uc?export=download&id=1wAkGv3Hdhi_mnh2gAIUDvGj-nFfbOW4c";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
+      authDomain: "wh40k-data-slate.firebaseapp.com",
+      projectId: "wh40k-data-slate",
+      storageBucket: "wh40k-data-slate.firebasestorage.app",
+      messagingSenderId: "382792444120",
+      appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const LAYOUTS = {
+      mechanicus:{ fontStack:'"Share Tech Mono", Calibri, Arial, sans-serif',
+        prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
+        suffixes:["++ PRAISE THE OMNISSIAH ++","++ MACHINE SPIRIT CALMED ++","++ THE FLESH IS WEAK ++","++ SYSTEM CLEANSED ++","++ BINARY PRAYER SENT ++","++ OMNISSIAH GUIDE US ++","++ SERVITOR READY ++","++ RITUAL COMPLETE ++","++ PRAY TO THE CODE ++"] },
+      inquisition:{ fontStack:'"Cinzel", Calibri, Arial, sans-serif',
+        prefixes:["++ INQUISITORIAL NOTICE ++","++ DATA INTERCEPTED ++","++ DECRYPTING ORDER ++","++ ORDER: SIGMA-9 ++","++ COGITATOR ACCESS ++","++ BY HIS WILL ++","++ CLASSIFIED MATERIAL ++","++ MIND CLEANSED ++","++ CODEX SECURED ++"],
+        suffixes:["++ THE EMPEROR PROTECTS ++","++ AUTHORIZATION VERIFIED ++","++ PURGE COMPLETE ++","++ FAITH REMAINS ++","++ THOUGHT FOR THE DAY ++","++ HERESY PURGED ++","++ OATH UPHELD ++","++ FAITH IS ARMOR ++","++ EXAMINATION COMPLETE ++"] },
+      militarum:{ fontStack:'"Rajdhani", Calibri, Arial, sans-serif',
+        prefixes:["++ IMPERIAL SIGNAL ++","++ HIGH COMMAND ORDER ++","++ ORDERS INCOMING ++","++ TACTICAL FEED ++","++ REGIMENTAL DATA ++","++ COMMAND OVERRIDE ++","++ BATTLELINE UPLINK ++","++ ENGAGEMENT ACTIVE ++","++ OPERATIONAL BRIEF ++"],
+        suffixes:["++ GLORY TO THE GUARD ++","++ VICTORY IS ASSURED ++","++ CADIA STANDS ++","++ DUTY FULFILLED ++","++ NO SACRIFICE TOO GREAT ++","++ PERIMETER SECURED ++","++ FOR THE EMPEROR ++","++ STATUS: GREEN ++","++ STRATEGIC DIRECTIVE ++"] },
+      khorne:{ fontStack:'"Black Ops One", Calibri, Arial, sans-serif',
+        prefixes:["++ BLOOD ALERT ++","++ SKULL COUNT RISING ++","++ RAGE TRANSMISSION ++","++ COMBAT UPLINK ++","++ SLAUGHTER INITIATED ++","++ VIOLENCE MAXIMUM ++","++ NO PEACE ONLY WAR ++","++ RIP THEIR HEADS ++","++ DOMINATE THROUGH BLOOD ++"],
+        suffixes:["++ BLOOD FOR THE BLOOD GOD ++","++ SKULLS FOR THE THRONE ++","++ RIP AND TEAR ++","++ ALL MUST BLEED ++","++ DEATH WITHOUT END ++","++ STRIKE WITHOUT MERCY ++","++ AXE ONLINE ++","++ RED FLOWS ++","++ KILL. MAIM. BURN. ++"] },
+      nurgle:{ fontStack:'"Staatliches", Calibri, Arial, sans-serif',
+        prefixes:["++ BLOAT SIGNAL ++","++ DECAY INITIATED ++","++ DISEASE VECTOR ACTIVE ++","++ PLAGUE SEED SENT ++","++ SPOREFIELD DEPLOYED ++","++ VIRUSCODE ENGAGED ++","++ ALL IS ROT ++","++ FLESH SAGS ++","++ FOULNESS RISES ++"],
+        suffixes:["++ PRAISE GRANDPA NURGLE ++","++ FILTH TRANSMITTED ++","++ ROTTEN JOY ++","++ CONTAGION SPREADS ++","++ FLIES REJOICE ++","++ FESTERING COMPLETE ++","++ MUCOUS FLOW ++","++ BLESSINGS OF ROT ++","++ CORRUPTION GLORIOUS ++"] },
+      tzeentch:{ fontStack:'"Orbitron", Calibri, Arial, sans-serif',
+        prefixes:["++ KNOWLEDGE UNFOLDS ++","++ SCHEME RUNNING ++","++ DATA TWISTED ++","++ WARP-TEXT INCOMING ++","++ INVERSION ACTIVE ++","++ DESTINY WRITTEN ++","++ NOTHING IS AS IT SEEMS ++","++ PATTERNS SHIFT ++","++ BURN THE SCRIPT ++"],
+        suffixes:["++ ALL IS CHANGE ++","++ PLAN: PHASE 7 ++","++ EYE OPENS ++","++ BIRD OF FATE SMILES ++","++ THOUGHT MUTATED ++","++ CYCLE CONTINUES ++","++ OBSERVE THE CHANGE ++","++ REWRITE EVERYTHING ++","++ JUST AS PLANNED ++"] },
+      slaanesh:{ fontStack:'"Questrial", Calibri, Arial, sans-serif',
+        prefixes:["++ ECSTASY PULSE ++","++ SENSORY OVERLOAD ++","++ LUXURY CHANNEL OPEN ++","++ VELVET SIGNAL ++","++ DESIRE BREACH ++","++ TOUCH THE DIVINE ++","++ TASTE THE PAIN ++","++ LUSTWAVE TRANSMITTED ++","++ EXCESS COMPLETE ++"],
+        suffixes:["++ FEED THE HUNGER ++","++ THE PERFECT MOMENT ++","++ PAIN IS PLEASURE ++","++ EXCESS IS TRUTH ++","++ PLEASURE SATURATED ++","++ UNHOLY HARMONY ++","++ FEEL EVERYTHING ++","++ TEMPTATION SPIKE ++","++ PERFECTION IS BLISS ++"] },
+      chaos_undivided:{ fontStack:'"Russo One", Calibri, Arial, sans-serif',
+        prefixes:["++ WARP STIRRING ++","++ TRANSMISSION CORRUPTED ++","++ HERESY INBOUND ++","++ WARP SIGNATURE FOUND ++","++ SACRIFICE ACCEPTED ++","++ WARP ENERGY RISING ++","++ ORDER BREAKS ++","++ FLESH TURNS ++","++ ASCENSION IMMINENT ++"],
+        suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"] },
+    };
+
+    const el = {
+      unlock: document.getElementById("unlock"),
+      wrap: document.getElementById("wrap"),
+      prefixLine: document.getElementById("prefixLine"),
+      suffixLine: document.getElementById("suffixLine"),
+      msg: document.getElementById("msg"),
+      debug: document.getElementById("debug"),
+    };
+
+    const debugOn = new URLSearchParams(location.search).get("debug") === "1";
+    function dbg(line){
+      console.log("[Infoczytnik]", line);
+      if (!debugOn) return;
+      el.debug.style.display = "block";
+      el.debug.textContent = (el.debug.textContent + "\n" + line).trim();
+    }
+
+    const currentRef = db.collection("dataslate").doc("current");
+    const configRef  = db.collection("dataslate").doc("config");
+
+    let lastNonce = null;
+    let audioConfig = { defaults:{} };
+    let audioArmed = false;
+
+    // “uzbrojenie” audio jednym kliknięciem w tej karcie
+    async function armAudio(){
+      if (audioArmed) return;
+      try{
+        // bardzo krótki “silent” play/pause na pustym audio bywa używany,
+        // ale tu robimy prościej: uznajemy, że sam klik wystarczy.
+        audioArmed = true;
+        el.unlock.style.display = "none";
+        dbg("AUDIO ARMED = true (klik w Infoczytniku)");
+      }catch(e){
+        dbg("armAudio error: " + (e?.message || e));
+      }
+    }
+    el.unlock.addEventListener("click", armAudio);
+    window.addEventListener("keydown", armAudio);
+
+    function clampIndex(n, max){
+      const x=Number(n);
+      if(!Number.isFinite(x)) return 1;
+      return Math.min(max, Math.max(1, Math.floor(x)));
+    }
+
+    function audioDefaults(){
+      const d = audioConfig.defaults || {};
+      return {
+        pingUrl: d.pingUrl || DEFAULT_PING_URL,
+        messageUrl: d.messageUrl || DEFAULT_MSG_URL
+      };
+    }
+
+    async function playUrlOnce(url, kind){
+      dbg(`playUrlOnce(${kind}): url=` + url);
+      if (!audioArmed){
+        dbg("BLOCKED: audio not armed (kliknij overlay w tej karcie)");
+        return;
+      }
+      if (!url){
+        dbg("BLOCKED: empty url");
+        return;
+      }
+      try{
+        const a = new Audio(url);
+        a.addEventListener("error", () => {
+          dbg(`Audio element error (${kind}). networkState=` + a.networkState + " readyState=" + a.readyState);
+        });
+        const p = a.play();
+        if (p && typeof p.then === "function"){
+          await p;
+        }
+        dbg(`OK: started (${kind})`);
+      }catch(e){
+        dbg(`ERROR play(${kind}): ` + (e?.message || e));
+      }
+    }
+
+    function showBlack(){
+      document.body.classList.remove("fx","fx-new");
+      el.wrap.style.display = "none";
+    }
+    function showPanel(){
+      document.body.classList.add("fx");
+      el.wrap.style.display = "flex";
+    }
+    function triggerFX(){
+      document.body.classList.add("fx");
+      document.body.classList.remove("fx-new");
+      void document.body.offsetWidth;
+      document.body.classList.add("fx-new");
+      setTimeout(()=>document.body.classList.remove("fx-new"), 3200);
+    }
+
+    function applyLayout(factionKey, fontColor){
+      const cfg = LAYOUTS[factionKey] || LAYOUTS.mechanicus;
+      document.documentElement.style.setProperty("--font", cfg.fontStack);
+      document.documentElement.style.setProperty("--accent", fontColor || "#00ff66");
+    }
+
+    function getFiller(cfg, idx1based, kind){
+      const arr = kind === "prefix" ? cfg.prefixes : cfg.suffixes;
+      const max = arr.length;
+      const i = clampIndex(idx1based, max) - 1;
+      return arr[i] || "";
+    }
+
+    function renderMessage(data){
+      const factionKey = (data && data.faction && LAYOUTS[data.faction]) ? data.faction : "mechanicus";
+      const cfg = LAYOUTS[factionKey];
+
+      const text = (data && typeof data.text === "string") ? data.text : "";
+      if (!text.trim()){
+        showBlack();
+        return;
+      }
+
+      applyLayout(factionKey, data.fontColor || "#00ff66");
+      el.prefixLine.textContent = getFiller(cfg, data.prefixIndex || 1, "prefix");
+      el.suffixLine.textContent = getFiller(cfg, data.suffixIndex || 1, "suffix");
+      el.msg.textContent = text;
+      el.msg.setAttribute("data-text", text);
+
+      showPanel();
+      triggerFX();
+    }
+
+    // Config audio (defaults) + logi
+    configRef.onSnapshot((snap)=>{
+      const d = snap.exists ? snap.data() : {};
+      audioConfig = { defaults: d?.audio?.defaults || {} };
+      const def = audioDefaults();
+      dbg("config defaults pingUrl=" + def.pingUrl);
+      dbg("config defaults msgUrl=" + def.messageUrl);
+    }, (err)=>{
+      dbg("ERROR configRef snapshot: " + (err?.message || err));
+    });
+
+    currentRef.onSnapshot((docSnap)=>{
+      if (!docSnap.exists) { dbg("current: doc missing"); showBlack(); return; }
+      const data = docSnap.data() || {};
+
+      dbg("current: type=" + data.type + " faction=" + data.faction + " nonce=" + data.nonce);
+
+      if (data.nonce && data.nonce === lastNonce) return;
+      lastNonce = data.nonce || null;
+
+      if (data.type === "clear") { dbg("action: clear -> black"); showBlack(); return; }
+
+      const def = audioDefaults();
+
+      if (data.type === "ping") {
+        triggerFX();
+        playUrlOnce(def.pingUrl, "ping");
+        return;
+      }
+
+      if (data.type === "message") {
+        renderMessage(data);
+        playUrlOnce(def.messageUrl, "message");
+        return;
+      }
+
+      // nieznany typ
+      dbg("unknown type -> ignore");
+    }, (err)=>{
+      dbg("ERROR currentRef snapshot: " + (err?.message || err));
+      showBlack();
+    });
+
+    showBlack();
+    dbg("ready. debug=" + debugOn + " (dodaj ?debug=1 do URL jeśli chcesz overlay logów)");
+  </script>
+</body>
+</html>
