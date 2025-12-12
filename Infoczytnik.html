@@ -20,6 +20,11 @@
     --screen-right: 14%;
     --screen-bottom: 22%;
     --screen-left: 18%;
+
+    /* Sterowanie efektem (łatwo potem stroić) */
+    --tx-bright-peak: 3.00; /* jasność szczytowa */
+    --tx-jitter: 15px;      /* amplituda drgań */
+    --tx-duration: 3s;      /* czas pulsu */
   }
 
   *{box-sizing:border-box}
@@ -102,49 +107,49 @@
     -webkit-overflow-scrolling:touch;
     padding: clamp(14px, 2.4vw, 24px);
 
-    display:none;
+    /* WAŻNE: screen nie znika, żeby prefix/suffix/logo nie „ginęły” */
+    display:block;
+
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
-  /* ====== TRANSMISSION EFFECT (mocny) ====== */
+  /* ====== TRANSMISSION EFFECT (puls + jitter) ====== */
 
-  /* Puls jasności (mocny: do brightness 2.00) */
   @keyframes txPulse {
     0%   { filter: brightness(1.00); opacity: 1; }
-    8%   { filter: brightness(2.00); opacity: 1; }
-    18%  { filter: brightness(.70); opacity: .85; }
-    30%  { filter: brightness(1.85); opacity: 1; }
-    44%  { filter: brightness(.80); opacity: .88; }
-    60%  { filter: brightness(1.60); opacity: 1; }
-    78%  { filter: brightness(.92); opacity: .95; }
+    10%  { filter: brightness(var(--tx-bright-peak)); opacity: 1; }
+    22%  { filter: brightness(.60); opacity: .85; }
+    38%  { filter: brightness(calc(var(--tx-bright-peak) * 0.85)); opacity: 1; }
+    55%  { filter: brightness(.78); opacity: .90; }
+    75%  { filter: brightness(calc(var(--tx-bright-peak) * 0.55)); opacity: 1; }
     100% { filter: brightness(1.00); opacity: 1; }
   }
 
-  /* Drganie (15px) – wyraźne */
-  @keyframes txJitter15 {
+  /* Drganie z użyciem zmiennej --tx-jitter */
+  @keyframes txJitter {
     0%   { transform: translate(0,0); }
-    10%  { transform: translate( 8px, -6px); }
-    20%  { transform: translate(-10px, 7px); }
-    30%  { transform: translate( 12px, 0px); }
-    40%  { transform: translate(-14px, -4px); }
-    50%  { transform: translate( 6px, 10px); }
-    60%  { transform: translate(-8px, -12px); }
-    70%  { transform: translate( 14px, 6px); }
-    80%  { transform: translate(-12px, 2px); }
-    90%  { transform: translate( 4px, -10px); }
+    10%  { transform: translate(calc(var(--tx-jitter) * 0.55), calc(var(--tx-jitter) * -0.40)); }
+    20%  { transform: translate(calc(var(--tx-jitter) * -0.65), calc(var(--tx-jitter) * 0.45)); }
+    30%  { transform: translate(calc(var(--tx-jitter) * 0.80), 0px); }
+    40%  { transform: translate(calc(var(--tx-jitter) * -0.95), calc(var(--tx-jitter) * -0.30)); }
+    50%  { transform: translate(calc(var(--tx-jitter) * 0.40), calc(var(--tx-jitter) * 0.70)); }
+    60%  { transform: translate(calc(var(--tx-jitter) * -0.55), calc(var(--tx-jitter) * -0.80)); }
+    70%  { transform: translate(calc(var(--tx-jitter) * 0.95), calc(var(--tx-jitter) * 0.40)); }
+    80%  { transform: translate(calc(var(--tx-jitter) * -0.80), calc(var(--tx-jitter) * 0.10)); }
+    90%  { transform: translate(calc(var(--tx-jitter) * 0.25), calc(var(--tx-jitter) * -0.65)); }
     100% { transform: translate(0,0); }
   }
 
   /* Efekt włączamy klasą .tx-on na .screen */
   .tx-on{
-    animation: txPulse 6.0s ease-out 1;
+    animation: txPulse var(--tx-duration) ease-out 1;
   }
 
-  /* Drganie tylko dla tekstu (żeby scroll nie „skakał” całym boxem) */
+  /* Drganie tylko dla tekstu (żeby scroll całego boxa nie skakał) */
   .tx-on .msg,
   .tx-on .prefixRow,
   .tx-on .suffixRow{
-    animation: txJitter15 .6s linear 9;
+    animation: txJitter .6s linear 5; /* 5*0.6s ≈ 3s */
   }
 
   /* Układ prefix + logo po PRAWEJ */
@@ -164,12 +169,12 @@
     white-space: pre-wrap;
   }
 
-  /* Stałe pole na logo (zachowuje proporcje, nie deformuje) */
+  /* Stałe pole na logo (proporcje zachowane) */
   .logoBox{
     flex: 0 0 auto;
     width: 54px;
     height: 54px;
-    display:none;           /* domyślnie ukryte */
+    display:flex;           /* zawsze istnieje */
     align-items:center;
     justify-content:center;
   }
@@ -183,6 +188,7 @@
     filter: drop-shadow(0 2px 6px rgba(0,0,0,.7));
     pointer-events:none;
     user-select:none;
+    display:none;           /* pokażemy tylko dla 2 frakcji */
   }
 
   .msg{
@@ -340,7 +346,7 @@
     chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
   };
 
-  // LOGO: tylko 2 frakcje, reszta = brak
+  // LOGO: tylko 2 frakcje (Twoje ścieżki)
   const FACTION_LOGO = {
     inquisition: "assets/logos/inquisition/Inquisition.png",
     mechanicus:  "assets/logos/mechanicus/Mechanicus.png"
@@ -367,6 +373,23 @@
     el.debug.textContent = (el.debug.textContent + "\n" + s).trim();
     el.debug.scrollTop = el.debug.scrollHeight;
   }
+
+  // Minimalne ujednolicenie efektu na tabletach: jeśli ekran „mały”,
+  // dajemy lekki boost, bo na wielu tabletach filtr/jitter wygląda słabiej.
+  (function tuneEffectByScreen(){
+    const minSide = Math.min(window.innerWidth, window.innerHeight);
+    if(minSide <= 900){
+      document.documentElement.style.setProperty("--tx-bright-peak", "3.20");
+      document.documentElement.style.setProperty("--tx-jitter", "18px");
+      document.documentElement.style.setProperty("--tx-duration", "3s");
+      dbg("effect tuned for small screen (tablet boost)");
+    }else{
+      document.documentElement.style.setProperty("--tx-bright-peak", "3.00");
+      document.documentElement.style.setProperty("--tx-jitter", "15px");
+      document.documentElement.style.setProperty("--tx-duration", "3s");
+      dbg("effect tuned for large screen (default)");
+    }
+  })();
 
   let audioArmed = false;
   function armAudio(){
@@ -419,12 +442,12 @@
   function setLogoForFaction(key){
     const src = FACTION_LOGO[key];
     if(!src){
-      el.logoBox.style.display = "none";
       el.logo.removeAttribute("src");
+      el.logo.style.display = "none";
       return;
     }
     el.logo.src = src;
-    el.logoBox.style.display = "flex";
+    el.logo.style.display = "block";
   }
 
   function applyLayout(factionKey, color){
@@ -450,27 +473,26 @@
   // TRANSMISSION EFFECT
   let txTimer = null;
   function triggerTransmissionEffect(){
-    el.screen.classList.remove("tx-on"); // restart
-    void el.screen.offsetWidth;          // reflow
+    el.screen.classList.remove("tx-on");
+    void el.screen.offsetWidth; // reflow
     el.screen.classList.add("tx-on");
     if(txTimer) clearTimeout(txTimer);
-    txTimer = setTimeout(()=> el.screen.classList.remove("tx-on"), 6200);
+    txTimer = setTimeout(()=> el.screen.classList.remove("tx-on"), 3000);
   }
 
   function showMessage(prefix, text, suffix){
     el.prefixLine.textContent = prefix || "";
     el.msg.textContent = text || "";
     el.suffixLine.textContent = suffix || "";
-    el.screen.style.display = "block";
     el.screen.scrollTop = 0;
     triggerTransmissionEffect();
   }
 
-  function hideTextKeepLayout(){
+  function clearMessageKeepLayout(){
     el.prefixLine.textContent = "";
     el.msg.textContent = "";
     el.suffixLine.textContent = "";
-    el.screen.style.display = "none";
+    // screen zostaje, żeby wyglądało jak czyste pole na danych
   }
 
   window.addEventListener("resize", () => fitPanel(currentAr));
@@ -495,7 +517,7 @@
     applyLayout(faction, color);
 
     if(d.type === "clear"){
-      hideTextKeepLayout();
+      clearMessageKeepLayout();
       return;
     }
 
@@ -512,7 +534,7 @@
       const suffix = d.suffix ?? "";
 
       if((text || "").trim().length === 0){
-        hideTextKeepLayout();
+        clearMessageKeepLayout();
       }else{
         showMessage(prefix, text, suffix);
       }
@@ -525,9 +547,8 @@
     dbg("ERROR snapshot: " + (err?.message || err));
   });
 
-  // Start
+  // Start (layout domyślny)
   applyLayout("mechanicus", "#00ff66");
-  hideTextKeepLayout();
   dbg("ready");
 </script>
 </body>
