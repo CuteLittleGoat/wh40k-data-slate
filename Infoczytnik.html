@@ -1,441 +1,306 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>WH40k Data-Slate — Infoczytnik</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Fonts (pobierane online; fallback do Calibri/Arial jeśli brak internetu) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
+<title>WH40k Data-Slate — Infoczytnik</title>
 
-  <style>
-    :root{
-      --accent:#00ff66;
-      --muted: rgba(255,255,255,.80);
-      --font: Calibri, Arial, sans-serif;
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel&family=Rajdhani&family=Black+Ops+One&family=Staatliches&family=Orbitron&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
 
-      /* domyślne bezpieczne pole (nadpisywane w JS zależnie od layoutu) */
-      --screen-top: 13%;
-      --screen-right: 12%;
-      --screen-bottom: 20%;
-      --screen-left: 16%;
+<style>
+:root{
+  --layout-bg: none;
+  --accent: #00ff66;
+  --font: 'Share Tech Mono', Calibri, monospace;
 
-      --layout-bg: none;
-    }
+  /* bezpieczne marginesy – ustawiane z JS */
+  --screen-top: 12%;
+  --screen-right: 12%;
+  --screen-bottom: 20%;
+  --screen-left: 16%;
+}
 
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0}
-    body{
-      background:#000;
-      color:var(--accent);
-      font-family:var(--font);
-      overflow:hidden; /* brak scrolla strony */
-    }
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  background:#000;
+  color:#0f0;
+  font-family:var(--font);
+}
 
-    /* delikatne efekty skanowania/migotania – bardzo spokojne */
-    body.fx::before{
-      content:""; position:fixed; inset:0; pointer-events:none;
-      background:repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,.03) 0px,
-        rgba(255,255,255,.03) 1px,
-        transparent 2px,
-        transparent 7px
-      );
-      opacity:.10;
-      mix-blend-mode:overlay;
-      animation:scanMove 14s linear infinite;
-    }
-    body.fx::after{
-      content:""; position:fixed; inset:0; pointer-events:none;
-      background:rgba(255,255,255,.04);
-      opacity:0;
-      animation:flicker 12s infinite;
-    }
-    @keyframes scanMove{0%{transform:translateY(0)}100%{transform:translateY(18px)}}
-    @keyframes flicker{
-      0%,92%,100%{opacity:0}
-      93%{opacity:.03}
-      95%{opacity:.01}
-      97%{opacity:.04}
-    }
+/* CENTROWANIE PANELU */
+.wrap{
+  height:100%;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+  overflow:hidden;
+}
 
-    /* “Nowa wiadomość” – lekki glow + mikro przesunięcie (czytelne, nie agresywne) */
-    body.fx-new .msg{ animation: msgGlow 2.8s ease-out 1; }
-    body.fx-new .msg::before, body.fx-new .msg::after{
-      content: attr(data-text);
-      position:absolute; left:0; top:0; width:100%;
-      white-space:pre-wrap; word-break:break-word; pointer-events:none;
-      opacity:.12;
-      filter: blur(.25px);
-    }
-    body.fx-new .msg::before{ transform: translate(-1px, 0); }
-    body.fx-new .msg::after { transform: translate( 1px, 0); }
+/* PANEL Z TŁEM */
+.panel{
+  position:relative;
+  overflow:hidden;
 
-    @keyframes msgGlow{
-      0%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
-      20%{ text-shadow:0 0 18px rgba(0,255,102,.20), 0 2px 6px rgba(0,0,0,.65); }
-      100%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
-    }
+  height:100vh;
+  width:auto;
+  max-width:100vw;
 
-    /* pełnoekranowy kontener bez przewijania */
-    .wrap{
-      height:100%;
-      width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      background:#000;
-    }
+  /* domyślne proporcje DataSlate_04 */
+  aspect-ratio: 1131 / 1600;
 
-    /* panel z tłem (layout) – nieruchomy, scroll tylko w .screen */
-    .panel{
-      width: 100vw;
-      height: 100vh;
-      position:relative;
-      overflow:hidden;
+  background-color:#000;
+  background-image:var(--layout-bg);
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+}
 
-      background-color:#000;
-      background-image: var(--layout-bg);
-      background-size: contain;         /* ważne: zachowuje proporcje obrazka */
-      background-position: center;
-      background-repeat: no-repeat;
-    }
+/* różne proporcje layoutów */
+.panel[data-ar="inq"]{ aspect-ratio: 707 / 1023; }
+.panel[data-ar="04"] { aspect-ratio: 1131 / 1600; }
 
-    /* bezpieczne pole na tekst – scroll TYLKO tu */
-    .screen{
-      position:absolute;
-      top:    var(--screen-top);
-      right:  var(--screen-right);
-      bottom: var(--screen-bottom);
-      left:   var(--screen-left);
+/* BEZPIECZNE POLE TEKSTU */
+.screen{
+  position:absolute;
+  top:var(--screen-top);
+  right:var(--screen-right);
+  bottom:var(--screen-bottom);
+  left:var(--screen-left);
 
-      overflow:auto;
-      -webkit-overflow-scrolling:touch;
+  padding:clamp(14px,2.5vw,24px);
+  overflow:auto;
 
-      padding: clamp(12px, 2.5vw, 22px);
+  color:var(--accent);
+  font-family:var(--font);
+  text-shadow:0 2px 6px rgba(0,0,0,.65);
 
-      display:none; /* start: ukryte (ma być widać samo tło) */
-    }
+  display:none;
+}
 
-    .line{
-      color:var(--muted);
-      font-size: clamp(12px, 2.1vw, 16px);
-      letter-spacing:.3px;
-      margin:0 0 8px 0;
-      white-space:pre-wrap;
-      text-shadow: 0 1px 2px rgba(0,0,0,.6);
-    }
+/* TEKST */
+.line{
+  opacity:.9;
+  font-size:clamp(14px,2vw,18px);
+  letter-spacing:2px;
+  margin:0 0 0.6em 0;
+}
 
-    .msg{
-      position:relative;
-      font-size: clamp(18px, 3.8vw, 36px);
-      line-height:1.25;
-      margin:12px 0;
-      white-space:pre-wrap;
-      word-break:break-word;
-      color:var(--accent);
-      text-shadow: 0 2px 6px rgba(0,0,0,.65);
-    }
+.msg{
+  font-size:clamp(18px,3vw,28px);
+  line-height:1.4;
+  margin:0.4em 0;
+  white-space:pre-wrap;
+}
 
-    /* overlay do odblokowania audio (wymóg przeglądarki) */
-    .unlock{
-      position:fixed; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.86);
-      color:rgba(255,255,255,.88);
-      font-family: Calibri, Arial, sans-serif;
-      z-index:1000;
-      padding:24px;
-      text-align:center;
-    }
-    .unlock .box{
-      border:1px solid rgba(255,255,255,.18);
-      border-radius:16px;
-      background:rgba(0,0,0,.35);
-      padding:18px 16px;
-      max-width:560px;
-    }
-    .unlock .title{font-size:18px;margin-bottom:8px;color:#fff}
-    .unlock .hint{font-size:13px;opacity:.75;line-height:1.35}
-    .unlock .tiny{margin-top:10px;font-size:12px;opacity:.6}
+/* DELIKATNE EFEKTY */
+@keyframes flicker{
+  0%,100%{opacity:1;}
+  50%{opacity:.96;}
+}
+.screen{ animation:flicker 6s infinite; }
 
-    /* debug overlay (?debug=1) */
-    .debug{
-      position:fixed; left:8px; bottom:8px;
-      font-family: Consolas, "Courier New", monospace;
-      font-size:11px;
-      color:rgba(255,255,255,.85);
-      background:rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:12px;
-      padding:10px;
-      max-width:min(92vw,560px);
-      white-space:pre-wrap;
-      z-index:1100;
-      display:none;
-    }
-  </style>
+/* OVERLAY AUDIO */
+#audioUnlock{
+  position:fixed;
+  inset:0;
+  background:#000;
+  color:#0f0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  cursor:pointer;
+  z-index:9999;
+  font-size:22px;
+}
+
+/* DEBUG */
+#debug{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  max-height:40%;
+  overflow:auto;
+  background:rgba(0,0,0,.85);
+  color:#0f0;
+  font-family:monospace;
+  font-size:12px;
+  padding:6px;
+  display:none;
+}
+</style>
 </head>
 
 <body>
-  <div class="unlock" id="unlock">
-    <div class="box">
-      <div class="title">Kliknij raz, aby odblokować dźwięk</div>
-      <div class="hint">
-        Przeglądarki blokują audio, dopóki w tej karcie nie wykonasz akcji.
-        To jednorazowe.
-      </div>
-      <div class="tiny">(Kliknij gdziekolwiek na ekranie)</div>
+
+<div id="audioUnlock">Kliknij, aby odblokować dźwięk</div>
+
+<div class="wrap" id="wrap">
+  <div class="panel" id="panel">
+    <div class="screen" id="screen">
+      <div class="line" id="prefixLine"></div>
+      <div class="msg" id="msg"></div>
+      <div class="line" id="suffixLine"></div>
     </div>
   </div>
+</div>
 
-  <div class="wrap" id="wrap">
-    <div class="panel" id="panel">
-      <div class="screen" id="screen">
-        <div class="line" id="prefixLine"></div>
-        <div class="msg" id="msg" data-text=""></div>
-        <div class="line" id="suffixLine"></div>
-      </div>
-    </div>
-  </div>
+<div id="debug"></div>
 
-  <div class="debug" id="debug"></div>
+<script type="module">
+/* ===================== FIREBASE ===================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore-compat.js"></script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
+  authDomain: "wh40k-data-slate.firebaseapp.com",
+  projectId: "wh40k-data-slate",
+  storageBucket: "wh40k-data-slate.firebasestorage.app",
+  messagingSenderId: "382792444120",
+  appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
+};
 
-  <script>
-    // === AUDIO (GitHub Pages). Uwaga: wielkość liter jak w Twoich plikach! ===
-    const DEFAULT_PING_URL = "https://cutelittlegoat.github.io/wh40k-data-slate/assets/audio/global/Ping.mp3";
-    const DEFAULT_MSG_URL  = "https://cutelittlegoat.github.io/wh40k-data-slate/assets/audio/global/Message.mp3";
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
 
-    // === TŁA (layouty) ===
-    // Inkwizycja ma własne DataSlate_Inq.png,
-    // reszta używa DataSlate_04.png w swoich folderach.
-    const LAYOUT_BG = {
-      mechanicus:      "url('assets/layouts/mechanicus/DataSlate_04.png')",
-      inquisition:     "url('assets/layouts/inquisition/DataSlate_Inq.png')",
-      militarum:       "url('assets/layouts/militarum/DataSlate_04.png')",
-      chaos_undivided: "url('assets/layouts/chaos_undivided/DataSlate_04.png')",
-      khorne:          "url('assets/layouts/khorne/DataSlate_04.png')",
-      nurgle:          "url('assets/layouts/nurgle/DataSlate_04.png')",
-      tzeentch:        "url('assets/layouts/tzeentch/DataSlate_04.png')",
-      slaanesh:        "url('assets/layouts/slaanesh/DataSlate_04.png')",
-    };
+/* ===================== CONFIG ===================== */
 
-    // Bezpieczne marginesy (celowo “zapasowe”, żeby tekst nie wchodził na ramkę/ozdoby)
-    // Jeśli kiedyś będziesz chciał ciaśniej, zmniejszymy procenty.
-    const SCREEN_INSETS = {
-      // DataSlate_Inq ma trochę inne proporcje / ramkę -> osobny preset
-      inquisition: { top:"16%", right:"14%", bottom:"24%", left:"18%" },
+const DEFAULT_PING_URL =
+  "assets/audio/global/Ping.mp3";
 
-      // DataSlate_04: grubsza rama + dół z panelem -> większy zapas
-      default04:   { top:"16%", right:"14%", bottom:"22%", left:"18%" },
-    };
+const DEFAULT_MSG_URL =
+  "assets/audio/global/Message.mp3";
 
-    // === Układy (font + fillery) ===
-    const LAYOUTS = {
-      mechanicus:{ fontStack:'"Share Tech Mono", Calibri, Arial, sans-serif',
-        prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
-        suffixes:["++ PRAISE THE OMNISSIAH ++","++ MACHINE SPIRIT CALMED ++","++ THE FLESH IS WEAK ++","++ SYSTEM CLEANSED ++","++ BINARY PRAYER SENT ++","++ OMNISSIAH GUIDE US ++","++ SERVITOR READY ++","++ RITUAL COMPLETE ++","++ PRAY TO THE CODE ++"] },
-      inquisition:{ fontStack:'"Cinzel", Calibri, Arial, sans-serif',
-        prefixes:["++ INQUISITORIAL NOTICE ++","++ DATA INTERCEPTED ++","++ DECRYPTING ORDER ++","++ ORDER: SIGMA-9 ++","++ COGITATOR ACCESS ++","++ BY HIS WILL ++","++ CLASSIFIED MATERIAL ++","++ MIND CLEANSED ++","++ CODEX SECURED ++"],
-        suffixes:["++ THE EMPEROR PROTECTS ++","++ AUTHORIZATION VERIFIED ++","++ PURGE COMPLETE ++","++ FAITH REMAINS ++","++ THOUGHT FOR THE DAY ++","++ HERESY PURGED ++","++ OATH UPHELD ++","++ FAITH IS ARMOR ++","++ EXAMINATION COMPLETE ++"] },
-      militarum:{ fontStack:'"Rajdhani", Calibri, Arial, sans-serif',
-        prefixes:["++ IMPERIAL SIGNAL ++","++ HIGH COMMAND ORDER ++","++ ORDERS INCOMING ++","++ TACTICAL FEED ++","++ REGIMENTAL DATA ++","++ COMMAND OVERRIDE ++","++ BATTLELINE UPLINK ++","++ ENGAGEMENT ACTIVE ++","++ OPERATIONAL BRIEF ++"],
-        suffixes:["++ GLORY TO THE GUARD ++","++ VICTORY IS ASSURED ++","++ CADIA STANDS ++","++ DUTY FULFILLED ++","++ NO SACRIFICE TOO GREAT ++","++ PERIMETER SECURED ++","++ FOR THE EMPEROR ++","++ STATUS: GREEN ++","++ STRATEGIC DIRECTIVE ++"] },
-      khorne:{ fontStack:'"Black Ops One", Calibri, Arial, sans-serif',
-        prefixes:["++ BLOOD ALERT ++","++ SKULL COUNT RISING ++","++ RAGE TRANSMISSION ++","++ COMBAT UPLINK ++","++ SLAUGHTER INITIATED ++","++ VIOLENCE MAXIMUM ++","++ NO PEACE ONLY WAR ++","++ RIP THEIR HEADS ++","++ DOMINATE THROUGH BLOOD ++"],
-        suffixes:["++ BLOOD FOR THE BLOOD GOD ++","++ SKULLS FOR THE THRONE ++","++ RIP AND TEAR ++","++ ALL MUST BLEED ++","++ DEATH WITHOUT END ++","++ STRIKE WITHOUT MERCY ++","++ AXE ONLINE ++","++ RED FLOWS ++","++ KILL. MAIM. BURN. ++"] },
-      nurgle:{ fontStack:'"Staatliches", Calibri, Arial, sans-serif',
-        prefixes:["++ BLOAT SIGNAL ++","++ DECAY INITIATED ++","++ DISEASE VECTOR ACTIVE ++","++ PLAGUE SEED SENT ++","++ SPOREFIELD DEPLOYED ++","++ VIRUSCODE ENGAGED ++","++ ALL IS ROT ++","++ FLESH SAGS ++","++ FOULNESS RISES ++"],
-        suffixes:["++ PRAISE GRANDPA NURGLE ++","++ FILTH TRANSMITTED ++","++ ROTTEN JOY ++","++ CONTAGION SPREADS ++","++ FLIES REJOICE ++","++ FESTERING COMPLETE ++","++ MUCOUS FLOW ++","++ BLESSINGS OF ROT ++","++ CORRUPTION GLORIOUS ++"] },
-      tzeentch:{ fontStack:'"Orbitron", Calibri, Arial, sans-serif',
-        prefixes:["++ KNOWLEDGE UNFOLDS ++","++ SCHEME RUNNING ++","++ DATA TWISTED ++","++ WARP-TEXT INCOMING ++","++ INVERSION ACTIVE ++","++ DESTINY WRITTEN ++","++ NOTHING IS AS IT SEEMS ++","++ PATTERNS SHIFT ++","++ BURN THE SCRIPT ++"],
-        suffixes:["++ ALL IS CHANGE ++","++ PLAN: PHASE 7 ++","++ EYE OPENS ++","++ BIRD OF FATE SMILES ++","++ THOUGHT MUTATED ++","++ CYCLE CONTINUES ++","++ OBSERVE THE CHANGE ++","++ REWRITE EVERYTHING ++","++ JUST AS PLANNED ++"] },
-      slaanesh:{ fontStack:'"Questrial", Calibri, Arial, sans-serif',
-        prefixes:["++ ECSTASY PULSE ++","++ SENSORY OVERLOAD ++","++ LUXURY CHANNEL OPEN ++","++ VELVET SIGNAL ++","++ DESIRE BREACH ++","++ TOUCH THE DIVINE ++","++ TASTE THE PAIN ++","++ LUSTWAVE TRANSMITTED ++","++ EXCESS COMPLETE ++"],
-        suffixes:["++ FEED THE HUNGER ++","++ THE PERFECT MOMENT ++","++ PAIN IS PLEASURE ++","++ EXCESS IS TRUTH ++","++ PLEASURE SATURATED ++","++ UNHOLY HARMONY ++","++ FEEL EVERYTHING ++","++ TEMPTATION SPIKE ++","++ PERFECTION IS BLISS ++"] },
-      chaos_undivided:{ fontStack:'"Russo One", Calibri, Arial, sans-serif',
-        prefixes:["++ WARP STIRRING ++","++ TRANSMISSION CORRUPTED ++","++ HERESY INBOUND ++","++ WARP SIGNATURE FOUND ++","++ SACRIFICE ACCEPTED ++","++ WARP ENERGY RISING ++","++ ORDER BREAKS ++","++ FLESH TURNS ++","++ ASCENSION IMMINENT ++"],
-        suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"] },
-    };
+const LAYOUT_BG = {
+  inquisition: "assets/layouts/inquisition/DataSlate_Inq.png",
+  mechanicus:  "assets/layouts/mechanicus/DataSlate_04.png",
+  militarum:   "assets/layouts/militarum/DataSlate_04.png",
+  chaos_undivided:"assets/layouts/chaos_undivided/DataSlate_04.png",
+  khorne:      "assets/layouts/khorne/DataSlate_04.png",
+  nurgle:      "assets/layouts/nurgle/DataSlate_04.png",
+  tzeentch:    "assets/layouts/tzeentch/DataSlate_04.png",
+  slaanesh:   "assets/layouts/slaanesh/DataSlate_04.png",
+};
 
-    // === Firebase ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
-      authDomain: "wh40k-data-slate.firebaseapp.com",
-      projectId: "wh40k-data-slate",
-      storageBucket: "wh40k-data-slate.firebasestorage.app",
-      messagingSenderId: "382792444120",
-      appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
-    };
+const SCREEN_INSETS = {
+  inquisition:{ top:"10%", right:"12%", bottom:"24%", left:"16%" },
+  default04:  { top:"12%", right:"12%", bottom:"20%", left:"16%" },
+};
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const currentRef = db.collection("dataslate").doc("current");
+const LAYOUTS = {
+  mechanicus:{
+    font:"'Share Tech Mono', Calibri, monospace",
+    prefixes:["++ ENGAGE LITURGY ++"],
+    suffixes:["++ PRAY TO THE CODE ++"]
+  }
+};
 
-    const el = {
-      unlock: document.getElementById("unlock"),
-      wrap: document.getElementById("wrap"),
-      panel: document.getElementById("panel"),
-      screen: document.getElementById("screen"),
-      prefixLine: document.getElementById("prefixLine"),
-      suffixLine: document.getElementById("suffixLine"),
-      msg: document.getElementById("msg"),
-      debug: document.getElementById("debug"),
-    };
+/* ===================== ELEMENTY ===================== */
+const el = {
+  unlock:document.getElementById("audioUnlock"),
+  wrap:document.getElementById("wrap"),
+  panel:document.getElementById("panel"),
+  screen:document.getElementById("screen"),
+  prefix:document.getElementById("prefixLine"),
+  msg:document.getElementById("msg"),
+  suffix:document.getElementById("suffixLine"),
+  debug:document.getElementById("debug")
+};
 
-    const debugOn = new URLSearchParams(location.search).get("debug") === "1";
-    function dbg(line){
-      console.log("[Infoczytnik]", line);
-      if (!debugOn) return;
-      el.debug.style.display = "block";
-      el.debug.textContent = (el.debug.textContent + "\n" + line).trim();
-    }
+/* ===================== DEBUG ===================== */
+const debug = new URLSearchParams(location.search).get("debug")==="1";
+function log(t){
+  if(!debug) return;
+  el.debug.style.display="block";
+  el.debug.textContent+=t+"\n";
+  el.debug.scrollTop=el.debug.scrollHeight;
+}
 
-    // Audio gating
-    let audioArmed = false;
-    function armAudio(){
-      if (audioArmed) return;
-      audioArmed = true;
-      el.unlock.style.display = "none";
-      dbg("AUDIO ARMED = true");
-    }
-    el.unlock.addEventListener("click", armAudio);
-    window.addEventListener("keydown", armAudio);
+/* ===================== AUDIO ===================== */
+let audioArmed=false;
+el.unlock.onclick=()=>{
+  audioArmed=true;
+  el.unlock.style.display="none";
+  log("AUDIO ARMED");
+};
 
-    function clampIndex(n, max){
-      const x = Number(n);
-      if(!Number.isFinite(x)) return 1;
-      return Math.min(max, Math.max(1, Math.floor(x)));
-    }
+function playOnce(url){
+  if(!audioArmed){ log("BLOCKED AUDIO"); return; }
+  const a=new Audio(url);
+  a.play().catch(e=>log("AUDIO ERR "+e));
+}
 
-    async function playUrlOnce(url, kind){
-      dbg(`playUrlOnce(${kind}): ${url}`);
-      if (!audioArmed){ dbg("BLOCKED: audio not armed"); return; }
-      try{
-        const a = new Audio(url);
-        a.addEventListener("error", () => dbg(`Audio error (${kind})`));
-        await a.play();
-        dbg(`OK: playing (${kind})`);
-      }catch(e){
-        dbg(`ERROR play(${kind}): ${e?.message || e}`);
-      }
-    }
+/* ===================== LAYOUT ===================== */
+function applyLayout(faction,color){
+  const bg = LAYOUT_BG[faction] || LAYOUT_BG.mechanicus;
+  document.documentElement.style.setProperty("--layout-bg",`url(${bg})`);
+  document.documentElement.style.setProperty("--accent",color||"#00ff66");
 
-    function triggerFX(){
-      document.body.classList.add("fx");
-      document.body.classList.remove("fx-new");
-      void document.body.offsetWidth;
-      document.body.classList.add("fx-new");
-      setTimeout(()=>document.body.classList.remove("fx-new"), 3200);
-    }
+  const inset = (faction==="inquisition") ? SCREEN_INSETS.inquisition : SCREEN_INSETS.default04;
+  for(const k in inset){
+    document.documentElement.style.setProperty(`--screen-${k}`,inset[k]);
+  }
 
-    function applyLayout(factionKey, fontColor){
-      const key = (factionKey && LAYOUTS[factionKey]) ? factionKey : "mechanicus";
-      const cfg = LAYOUTS[key];
+  el.panel.dataset.ar = (faction==="inquisition") ? "inq" : "04";
+}
 
-      document.documentElement.style.setProperty("--font", cfg.fontStack);
-      document.documentElement.style.setProperty("--accent", fontColor || "#00ff66");
+/* ===================== STANY ===================== */
+function showIdle(){
+  el.screen.style.display="none";
+  el.prefix.textContent="";
+  el.msg.textContent="";
+  el.suffix.textContent="";
+}
 
-      const bg = LAYOUT_BG[key] || LAYOUT_BG.mechanicus || "none";
-      document.documentElement.style.setProperty("--layout-bg", bg);
+function showMessage(p,m,s){
+  el.prefix.textContent=p||"";
+  el.msg.textContent=m||"";
+  el.suffix.textContent=s||"";
+  el.screen.style.display="block";
+}
 
-      const insets = (key === "inquisition") ? SCREEN_INSETS.inquisition : SCREEN_INSETS.default04;
-      document.documentElement.style.setProperty("--screen-top", insets.top);
-      document.documentElement.style.setProperty("--screen-right", insets.right);
-      document.documentElement.style.setProperty("--screen-bottom", insets.bottom);
-      document.documentElement.style.setProperty("--screen-left", insets.left);
-    }
+/* ===================== FIRESTORE ===================== */
+const ref = doc(db,"dataslate","current");
+let lastNonce=null;
 
-    function getFiller(cfg, idx1based, kind){
-      const arr = (kind === "prefix") ? cfg.prefixes : cfg.suffixes;
-      const max = arr.length;
-      const i = clampIndex(idx1based, max) - 1;
-      return arr[i] || "";
-    }
+onSnapshot(ref,snap=>{
+  if(!snap.exists()) return;
+  const d=snap.data();
+  if(d.nonce===lastNonce) return;
+  lastNonce=d.nonce;
 
-    // Stan spoczynku: widać tło layoutu, ale tekst ukryty
-    function showIdleLayout(){
-      el.prefixLine.textContent = "";
-      el.suffixLine.textContent = "";
-      el.msg.textContent = "";
-      el.msg.setAttribute("data-text","");
+  log("EVENT "+d.type+" "+d.faction);
 
-      el.screen.style.display = "none";
-      document.body.classList.add("fx");
-      document.body.classList.remove("fx-new");
-    }
+  applyLayout(d.faction,d.color);
 
-    function renderMessage(data){
-      const factionKey = (data && data.faction && LAYOUTS[data.faction]) ? data.faction : "mechanicus";
-      const cfg = LAYOUTS[factionKey];
+  if(d.type==="clear"){
+    showIdle();
+    return;
+  }
 
-      const text = (data && typeof data.text === "string") ? data.text : "";
-      if (!text.trim()){
-        showIdleLayout();
-        return;
-      }
+  if(d.type==="ping"){
+    playOnce(d.pingUrl||DEFAULT_PING_URL);
+    return;
+  }
 
-      applyLayout(factionKey, data.fontColor || "#00ff66");
+  if(d.type==="message"){
+    showMessage(d.prefix,d.text,d.suffix);
+    playOnce(d.msgUrl||DEFAULT_MSG_URL);
+  }
+});
 
-      el.prefixLine.textContent = getFiller(cfg, data.prefixIndex || 1, "prefix");
-      el.suffixLine.textContent = getFiller(cfg, data.suffixIndex || 1, "suffix");
-      el.msg.textContent = text;
-      el.msg.setAttribute("data-text", text);
-
-      el.screen.style.display = "block";
-      triggerFX();
-      // scroll na górę przy nowej wiadomości
-      el.screen.scrollTop = 0;
-    }
-
-    // Subskrypcja Firestore
-    let lastNonce = null;
-
-    currentRef.onSnapshot((docSnap)=>{
-      if (!docSnap.exists) { dbg("current: doc missing"); showIdleLayout(); return; }
-      const data = docSnap.data() || {};
-      dbg("current: type=" + data.type + " faction=" + data.faction + " nonce=" + data.nonce);
-
-      if (data.nonce && data.nonce === lastNonce) return;
-      lastNonce = data.nonce || null;
-
-      if (data.type === "clear") {
-        // zachowaj tło, schowaj tekst
-        if (data.faction) applyLayout(data.faction, data.fontColor || "#00ff66");
-        showIdleLayout();
-        return;
-      }
-
-      if (data.type === "ping") {
-        // ping: nie pokazuj tekstu jeśli go nie było – tylko lekki efekt + dźwięk
-        triggerFX();
-        playUrlOnce(DEFAULT_PING_URL, "ping");
-        return;
-      }
-
-      if (data.type === "message") {
-        renderMessage(data);
-        playUrlOnce(DEFAULT_MSG_URL, "message");
-        return;
-      }
-    }, (err)=>{
-      dbg("ERROR snapshot: " + (err?.message || err));
-      showIdleLayout();
-    });
-
-    // Start: pokaż tło domyślne (np. inkwizycja albo mechanicus) i ukryj tekst
-    applyLayout("inquisition", "#00ff66");
-    showIdleLayout();
-
-    dbg("ready. debug=" + debugOn);
-  </script>
+/* START */
+applyLayout("mechanicus","#00ff66");
+showIdle();
+log("ready");
+</script>
 </body>
 </html>
