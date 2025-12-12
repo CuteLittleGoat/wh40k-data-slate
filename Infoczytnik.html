@@ -10,50 +10,78 @@
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
 
   <style>
-    :root{ --accent:#00ff66; --muted: rgba(255,255,255,.70); --font: Calibri, Arial, sans-serif; }
+    :root{ --accent:#00ff66; --muted: rgba(255,255,255,.78); --font: Calibri, Arial, sans-serif; }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
     body{font-family:var(--font); background:#000; color:var(--accent); overflow:hidden;}
 
+    /* efekty delikatne */
     body.fx::before{
       content:""; position:fixed; inset:0; pointer-events:none;
-      background:repeating-linear-gradient(to bottom, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 2px, transparent 6px);
-      opacity:.10; mix-blend-mode:overlay; animation:scanMove 12s linear infinite;
+      background:repeating-linear-gradient(to bottom, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 2px, transparent 7px);
+      opacity:.10; mix-blend-mode:overlay; animation:scanMove 14s linear infinite;
     }
     body.fx::after{
       content:""; position:fixed; inset:0; pointer-events:none;
-      background:rgba(255,255,255,.04); opacity:0; animation:flicker 9s infinite;
+      background:rgba(255,255,255,.04); opacity:0; animation:flicker 10s infinite;
     }
     @keyframes scanMove{0%{transform:translateY(0)}100%{transform:translateY(18px)}}
-    @keyframes flicker{0%,92%,100%{opacity:0}93%{opacity:.04}95%{opacity:.01}97%{opacity:.05}}
+    @keyframes flicker{0%,93%,100%{opacity:0}94%{opacity:.04}96%{opacity:.01}98%{opacity:.05}}
 
+    /* scroll jest na wrap; start od góry (żeby prefix/suffix nie znikał) */
     .wrap{
       height:100%; width:100%;
       padding: clamp(10px, 3vw, 28px);
       overflow:auto; -webkit-overflow-scrolling:touch;
-      display:flex; align-items:center; justify-content:center;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
     }
+
+    /* Panel z tłem layoutu */
     .panel{
       width:min(1100px,100%);
-      border:1px solid rgba(255,255,255,.14);
       border-radius:18px;
-      background:rgba(0,0,0,.62);
       box-shadow:0 18px 60px rgba(0,0,0,.55);
       padding: clamp(14px, 3.5vw, 26px);
-    }
-    .frame{
+
+      background-color: rgba(0,0,0,.85);
+      background-image: var(--layout-bg);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
       border:1px solid rgba(255,255,255,.14);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* lekka ciemna warstwa na tle, żeby tekst był czytelny */
+    .panel::before{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75));
+      pointer-events:none;
+    }
+
+    .frame{
+      position:relative; /* nad overlay */
+      border:1px solid rgba(255,255,255,.16);
       border-radius:14px;
       padding: clamp(12px, 3vw, 20px);
       background:rgba(0,0,0,.18);
+      backdrop-filter: blur(0.5px);
     }
+
     .line{
       color:var(--muted);
       font-size: clamp(12px, 2.1vw, 16px);
       letter-spacing:.3px;
       margin:0 0 8px 0;
       white-space:pre-wrap;
+      text-shadow: 0 1px 2px rgba(0,0,0,.6);
     }
+
     .msg{
       font-size: clamp(18px, 3.8vw, 36px);
       line-height:1.25;
@@ -62,6 +90,7 @@
       word-break:break-word;
       color:var(--accent);
       position:relative;
+      text-shadow: 0 2px 6px rgba(0,0,0,.65);
     }
 
     body.fx-new .msg{ animation: msgGlow 2.8s ease-out 1; }
@@ -69,22 +98,22 @@
       content: attr(data-text);
       position:absolute; left:0; top:0; width:100%;
       white-space:pre-wrap; word-break:break-word; pointer-events:none;
-      opacity:.18; filter: blur(.25px);
+      opacity:.16; filter: blur(.25px);
     }
     body.fx-new .msg::before{ transform: translate(-1px, 0); }
     body.fx-new .msg::after{ transform: translate( 1px, 0); }
     @keyframes msgGlow{
-      0%{ text-shadow:0 0 0 rgba(0,255,102,0); }
-      20%{ text-shadow:0 0 14px rgba(0,255,102,.18); }
-      100%{ text-shadow:0 0 0 rgba(0,255,102,0); }
+      0%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
+      20%{ text-shadow:0 0 18px rgba(0,255,102,.20), 0 2px 6px rgba(0,0,0,.65); }
+      100%{ text-shadow:0 2px 6px rgba(0,0,0,.65); }
     }
 
-    /* Minimalny overlay do odblokowania audio (znika po kliknięciu) */
+    /* overlay do odblokowania audio */
     .unlock{
       position:fixed; inset:0;
       display:flex; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.80);
-      color:rgba(255,255,255,.85);
+      background:rgba(0,0,0,.86);
+      color:rgba(255,255,255,.88);
       font-family: Calibri, Arial, sans-serif;
       z-index:1000;
       padding:24px;
@@ -95,13 +124,13 @@
       border-radius:16px;
       background:rgba(0,0,0,.35);
       padding:18px 16px;
-      max-width:540px;
+      max-width:560px;
     }
     .unlock .title{font-size:18px;margin-bottom:8px;color:#fff}
     .unlock .hint{font-size:13px;opacity:.75;line-height:1.35}
     .unlock .tiny{margin-top:10px;font-size:12px;opacity:.6}
 
-    /* Debug overlay (włącz: dopisz ?debug=1 do adresu pliku) */
+    /* debug overlay (?debug=1) */
     .debug{
       position:fixed; left:8px; bottom:8px;
       font-family: Consolas, "Courier New", monospace;
@@ -124,15 +153,15 @@
     <div class="box">
       <div class="title">Kliknij raz, aby odblokować dźwięk</div>
       <div class="hint">
-        Chrome często blokuje odtwarzanie audio w tej karcie, dopóki nie wykonasz tu żadnej akcji.
-        To jednorazowe – po kliknięciu overlay zniknie.
+        Przeglądarki często blokują audio, dopóki nie wykonasz w tej karcie żadnej akcji.
+        To jednorazowe.
       </div>
-      <div class="tiny">(Możesz kliknąć gdziekolwiek na ekranie)</div>
+      <div class="tiny">(Kliknij gdziekolwiek na ekranie)</div>
     </div>
   </div>
 
   <div class="wrap" id="wrap" style="display:none;">
-    <div class="panel">
+    <div class="panel" id="panel">
       <div class="frame">
         <div class="line" id="prefixLine"></div>
         <div class="msg" id="msg" data-text=""></div>
@@ -147,9 +176,22 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore-compat.js"></script>
 
   <script>
-    // === Wbudowane domyślne linki (Twoje) ===
-    const DEFAULT_PING_URL = "https://drive.google.com/uc?export=download&id=17WEFjW2IfpdxkD5mpca1diKzZEtfhjjS";
-    const DEFAULT_MSG_URL  = "https://drive.google.com/uc?export=download&id=1wAkGv3Hdhi_mnh2gAIUDvGj-nFfbOW4c";
+    // === AUDIO Z GITHUB PAGES (UWAGA: wielkość liter jak w Twoich plikach) ===
+    const DEFAULT_PING_URL = "https://cutelittlegoat.github.io/wh40k-data-slate/assets/audio/global/Ping.mp3";
+    const DEFAULT_MSG_URL  = "https://cutelittlegoat.github.io/wh40k-data-slate/assets/audio/global/Message.mp3";
+
+    // === TŁA (layouty) ===
+    // Inkwizycja ma własny DataSlate_Inq.png, reszta DataSlate_04.png w swoich folderach
+    const LAYOUT_BG = {
+      mechanicus:     "url('assets/layouts/mechanicus/DataSlate_04.png')",
+      inquisition:    "url('assets/layouts/inquisition/DataSlate_Inq.png')",
+      militarum:      "url('assets/layouts/militarum/DataSlate_04.png')",
+      chaos_undivided:"url('assets/layouts/chaos_undivided/DataSlate_04.png')",
+      khorne:         "url('assets/layouts/khorne/DataSlate_04.png')",
+      nurgle:         "url('assets/layouts/nurgle/DataSlate_04.png')",
+      tzeentch:       "url('assets/layouts/tzeentch/DataSlate_04.png')",
+      slaanesh:       "url('assets/layouts/slaanesh/DataSlate_04.png')",
+    };
 
     const firebaseConfig = {
       apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
@@ -193,6 +235,7 @@
     const el = {
       unlock: document.getElementById("unlock"),
       wrap: document.getElementById("wrap"),
+      panel: document.getElementById("panel"),
       prefixLine: document.getElementById("prefixLine"),
       suffixLine: document.getElementById("suffixLine"),
       msg: document.getElementById("msg"),
@@ -208,24 +251,13 @@
     }
 
     const currentRef = db.collection("dataslate").doc("current");
-    const configRef  = db.collection("dataslate").doc("config");
-
     let lastNonce = null;
-    let audioConfig = { defaults:{} };
-    let audioArmed = false;
 
-    // “uzbrojenie” audio jednym kliknięciem w tej karcie
+    let audioArmed = false;
     async function armAudio(){
-      if (audioArmed) return;
-      try{
-        // bardzo krótki “silent” play/pause na pustym audio bywa używany,
-        // ale tu robimy prościej: uznajemy, że sam klik wystarczy.
-        audioArmed = true;
-        el.unlock.style.display = "none";
-        dbg("AUDIO ARMED = true (klik w Infoczytniku)");
-      }catch(e){
-        dbg("armAudio error: " + (e?.message || e));
-      }
+      audioArmed = true;
+      el.unlock.style.display = "none";
+      dbg("AUDIO ARMED = true");
     }
     el.unlock.addEventListener("click", armAudio);
     window.addEventListener("keydown", armAudio);
@@ -236,34 +268,14 @@
       return Math.min(max, Math.max(1, Math.floor(x)));
     }
 
-    function audioDefaults(){
-      const d = audioConfig.defaults || {};
-      return {
-        pingUrl: d.pingUrl || DEFAULT_PING_URL,
-        messageUrl: d.messageUrl || DEFAULT_MSG_URL
-      };
-    }
-
     async function playUrlOnce(url, kind){
-      dbg(`playUrlOnce(${kind}): url=` + url);
-      if (!audioArmed){
-        dbg("BLOCKED: audio not armed (kliknij overlay w tej karcie)");
-        return;
-      }
-      if (!url){
-        dbg("BLOCKED: empty url");
-        return;
-      }
+      dbg(`playUrlOnce(${kind}): ` + url);
+      if (!audioArmed){ dbg("BLOCKED: audio not armed"); return; }
       try{
         const a = new Audio(url);
-        a.addEventListener("error", () => {
-          dbg(`Audio element error (${kind}). networkState=` + a.networkState + " readyState=" + a.readyState);
-        });
-        const p = a.play();
-        if (p && typeof p.then === "function"){
-          await p;
-        }
-        dbg(`OK: started (${kind})`);
+        a.addEventListener("error", () => dbg(`Audio error (${kind})`));
+        await a.play();
+        dbg(`OK: playing (${kind})`);
       }catch(e){
         dbg(`ERROR play(${kind}): ` + (e?.message || e));
       }
@@ -287,8 +299,13 @@
 
     function applyLayout(factionKey, fontColor){
       const cfg = LAYOUTS[factionKey] || LAYOUTS.mechanicus;
+
+      // font + kolor + tło
       document.documentElement.style.setProperty("--font", cfg.fontStack);
       document.documentElement.style.setProperty("--accent", fontColor || "#00ff66");
+
+      const bg = LAYOUT_BG[factionKey] || LAYOUT_BG.mechanicus || "none";
+      document.documentElement.style.setProperty("--layout-bg", bg);
     }
 
     function getFiller(cfg, idx1based, kind){
@@ -318,17 +335,6 @@
       triggerFX();
     }
 
-    // Config audio (defaults) + logi
-    configRef.onSnapshot((snap)=>{
-      const d = snap.exists ? snap.data() : {};
-      audioConfig = { defaults: d?.audio?.defaults || {} };
-      const def = audioDefaults();
-      dbg("config defaults pingUrl=" + def.pingUrl);
-      dbg("config defaults msgUrl=" + def.messageUrl);
-    }, (err)=>{
-      dbg("ERROR configRef snapshot: " + (err?.message || err));
-    });
-
     currentRef.onSnapshot((docSnap)=>{
       if (!docSnap.exists) { dbg("current: doc missing"); showBlack(); return; }
       const data = docSnap.data() || {};
@@ -338,31 +344,26 @@
       if (data.nonce && data.nonce === lastNonce) return;
       lastNonce = data.nonce || null;
 
-      if (data.type === "clear") { dbg("action: clear -> black"); showBlack(); return; }
-
-      const def = audioDefaults();
+      if (data.type === "clear") { dbg("action: clear"); showBlack(); return; }
 
       if (data.type === "ping") {
         triggerFX();
-        playUrlOnce(def.pingUrl, "ping");
+        playUrlOnce(DEFAULT_PING_URL, "ping");
         return;
       }
 
       if (data.type === "message") {
         renderMessage(data);
-        playUrlOnce(def.messageUrl, "message");
+        playUrlOnce(DEFAULT_MSG_URL, "message");
         return;
       }
-
-      // nieznany typ
-      dbg("unknown type -> ignore");
     }, (err)=>{
-      dbg("ERROR currentRef snapshot: " + (err?.message || err));
+      dbg("ERROR snapshot: " + (err?.message || err));
       showBlack();
     });
 
     showBlack();
-    dbg("ready. debug=" + debugOn + " (dodaj ?debug=1 do URL jeśli chcesz overlay logów)");
+    dbg("ready. debug=" + debugOn);
   </script>
 </body>
 </html>
