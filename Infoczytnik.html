@@ -1,306 +1,474 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>WH40k Data-Slate — Infoczytnik</title>
 
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel&family=Rajdhani&family=Black+Ops+One&family=Staatliches&family=Orbitron&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
+<!-- Google Fonts (fallback do Calibri/Arial jeśli brak internetu) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --layout-bg: none;
-  --accent: #00ff66;
-  --font: 'Share Tech Mono', Calibri, monospace;
+  :root{
+    --accent:#00ff66;
+    --font: Calibri, Arial, sans-serif;
 
-  /* bezpieczne marginesy – ustawiane z JS */
-  --screen-top: 12%;
-  --screen-right: 12%;
-  --screen-bottom: 20%;
-  --screen-left: 16%;
-}
+    /* Bezpieczne marginesy tekstu (z zapasem, żeby nie nachodzić na ozdoby) */
+    --screen-top: 14%;
+    --screen-right: 14%;
+    --screen-bottom: 22%;
+    --screen-left: 18%;
+  }
 
-html,body{
-  margin:0;
-  padding:0;
-  height:100%;
-  background:#000;
-  color:#0f0;
-  font-family:var(--font);
-}
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0; background:#000; overflow:hidden;}
+  body{color:var(--accent); font-family:var(--font);}
 
-/* CENTROWANIE PANELU */
-.wrap{
-  height:100%;
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#000;
-  overflow:hidden;
-}
+  /* FULLSCREEN wrapper */
+  .wrap{
+    width:100vw; height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#000;
+    overflow:hidden;
+  }
 
-/* PANEL Z TŁEM */
-.panel{
-  position:relative;
-  overflow:hidden;
+  /* Panel ma rozmiar ustawiany JS (fit contain) */
+  .panel{
+    position:relative;
+    overflow:hidden;
+    background:#000;
+    /* width/height ustawiane w JS */
+  }
 
-  height:100vh;
-  width:auto;
-  max-width:100vw;
+  /* Layout jako IMG (stabilne contain na każdym ekranie) */
+  .layout-img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    object-position:center;
+    user-select:none;
+    -webkit-user-drag:none;
+    pointer-events:none;
+  }
 
-  /* domyślne proporcje DataSlate_04 */
-  aspect-ratio: 1131 / 1600;
+  /* CRT / Scanlines overlay */
+  .crt::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.035) 0px,
+        rgba(255,255,255,.035) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 7px
+      );
+    opacity:.18;
+    mix-blend-mode: overlay;
+    animation: scanMove 14s linear infinite;
+  }
 
-  background-color:#000;
-  background-image:var(--layout-bg);
-  background-size:contain;
-  background-position:center;
-  background-repeat:no-repeat;
-}
+  .crt::after{
+    content:"";
+    position:absolute;
+    inset:-2%;
+    pointer-events:none;
+    background:
+      radial-gradient(closest-side, rgba(0,0,0,0) 65%, rgba(0,0,0,.55) 100%),
+      rgba(255,255,255,.03);
+    opacity:.55;
+    animation: flicker 10s infinite;
+  }
 
-/* różne proporcje layoutów */
-.panel[data-ar="inq"]{ aspect-ratio: 707 / 1023; }
-.panel[data-ar="04"] { aspect-ratio: 1131 / 1600; }
+  @keyframes scanMove { 0%{transform:translateY(0)} 100%{transform:translateY(18px)} }
+  @keyframes flicker {
+    0%,90%,100%{opacity:.55}
+    91%{opacity:.50}
+    93%{opacity:.58}
+    96%{opacity:.52}
+  }
 
-/* BEZPIECZNE POLE TEKSTU */
-.screen{
-  position:absolute;
-  top:var(--screen-top);
-  right:var(--screen-right);
-  bottom:var(--screen-bottom);
-  left:var(--screen-left);
+  /* Bezpieczne pole na tekst – scroll tylko tutaj */
+  .screen{
+    position:absolute;
+    top:var(--screen-top);
+    right:var(--screen-right);
+    bottom:var(--screen-bottom);
+    left:var(--screen-left);
 
-  padding:clamp(14px,2.5vw,24px);
-  overflow:auto;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    padding: clamp(14px, 2.4vw, 24px);
 
-  color:var(--accent);
-  font-family:var(--font);
-  text-shadow:0 2px 6px rgba(0,0,0,.65);
+    display:none; /* pokażemy gdy jest wiadomość */
+    text-shadow: 0 2px 6px rgba(0,0,0,.70);
+  }
 
-  display:none;
-}
+  .prefix, .suffix{
+    color: rgba(255,255,255,.82);
+    font-size: clamp(12px, 2.0vw, 16px);
+    letter-spacing: 1.5px;
+    margin: 0 0 10px 0;
+    white-space: pre-wrap;
+  }
 
-/* TEKST */
-.line{
-  opacity:.9;
-  font-size:clamp(14px,2vw,18px);
-  letter-spacing:2px;
-  margin:0 0 0.6em 0;
-}
+  .suffix{ margin-top: 12px; }
 
-.msg{
-  font-size:clamp(18px,3vw,28px);
-  line-height:1.4;
-  margin:0.4em 0;
-  white-space:pre-wrap;
-}
+  .msg{
+    position:relative;
+    font-size: clamp(18px, 3.4vw, 32px);
+    line-height: 1.35;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--accent);
+  }
 
-/* DELIKATNE EFEKTY */
-@keyframes flicker{
-  0%,100%{opacity:1;}
-  50%{opacity:.96;}
-}
-.screen{ animation:flicker 6s infinite; }
+  /* Delikatny glitch tylko chwilę po nowej wiadomości */
+  .glitch-on .msg{
+    animation: msgGlow 2.8s ease-out 1;
+  }
+  .glitch-on .msg::before,
+  .glitch-on .msg::after{
+    content: attr(data-text);
+    position:absolute; left:0; top:0;
+    width:100%;
+    white-space: pre-wrap;
+    word-break: break-word;
+    opacity:.10;
+    pointer-events:none;
+    filter: blur(.25px);
+  }
+  .glitch-on .msg::before{ transform: translate(-1px, 0); }
+  .glitch-on .msg::after { transform: translate( 1px, 0); }
 
-/* OVERLAY AUDIO */
-#audioUnlock{
-  position:fixed;
-  inset:0;
-  background:#000;
-  color:#0f0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  cursor:pointer;
-  z-index:9999;
-  font-size:22px;
-}
+  @keyframes msgGlow{
+    0%{ text-shadow:0 2px 6px rgba(0,0,0,.70); }
+    20%{ text-shadow:0 0 18px rgba(0,255,102,.22), 0 2px 6px rgba(0,0,0,.70); }
+    100%{ text-shadow:0 2px 6px rgba(0,0,0,.70); }
+  }
 
-/* DEBUG */
-#debug{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  max-height:40%;
-  overflow:auto;
-  background:rgba(0,0,0,.85);
-  color:#0f0;
-  font-family:monospace;
-  font-size:12px;
-  padding:6px;
-  display:none;
-}
+  /* Audio unlock overlay (wymóg Chrome dla autoplay) */
+  .unlock{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.88);
+    color:rgba(255,255,255,.9);
+    font-family: Calibri, Arial, sans-serif;
+    z-index:9999;
+    text-align:center;
+    cursor:pointer;
+    padding:24px;
+  }
+  .unlock .box{
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:16px;
+    padding:18px 16px;
+    max-width:560px;
+    background:rgba(0,0,0,.35);
+  }
+  .unlock .title{font-size:18px; margin-bottom:8px;}
+  .unlock .hint{font-size:13px; opacity:.78; line-height:1.35;}
+  .unlock .tiny{margin-top:10px; font-size:12px; opacity:.6;}
+
+  /* Debug overlay */
+  #debug{
+    position:fixed;
+    left:8px; bottom:8px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size:11px;
+    color:rgba(255,255,255,.85);
+    background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;
+    padding:10px;
+    max-width:min(92vw,640px);
+    white-space:pre-wrap;
+    z-index:10000;
+    display:none;
+    max-height: 40vh;
+    overflow:auto;
+  }
 </style>
 </head>
 
 <body>
-
-<div id="audioUnlock">Kliknij, aby odblokować dźwięk</div>
-
-<div class="wrap" id="wrap">
-  <div class="panel" id="panel">
-    <div class="screen" id="screen">
-      <div class="line" id="prefixLine"></div>
-      <div class="msg" id="msg"></div>
-      <div class="line" id="suffixLine"></div>
+  <div class="unlock" id="unlock">
+    <div class="box">
+      <div class="title">Kliknij raz, aby odblokować dźwięk</div>
+      <div class="hint">
+        Chrome blokuje dźwięk, dopóki w tej karcie nie wykonasz akcji.
+        To jednorazowe (po odświeżeniu trzeba kliknąć ponownie).
+      </div>
+      <div class="tiny">(Kliknij gdziekolwiek)</div>
     </div>
   </div>
-</div>
 
-<div id="debug"></div>
+  <div class="wrap">
+    <div class="panel crt" id="panel">
+      <img class="layout-img" id="layoutImg" alt="layout" />
+      <div class="screen" id="screen">
+        <div class="prefix" id="prefixLine"></div>
+        <div class="msg" id="msg" data-text=""></div>
+        <div class="suffix" id="suffixLine"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="debug"></div>
 
 <script type="module">
-/* ===================== FIREBASE ===================== */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  // Firebase (modular) — zgodnie z Twoim projektem
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
-  authDomain: "wh40k-data-slate.firebaseapp.com",
-  projectId: "wh40k-data-slate",
-  storageBucket: "wh40k-data-slate.firebasestorage.app",
-  messagingSenderId: "382792444120",
-  appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
+    authDomain: "wh40k-data-slate.firebaseapp.com",
+    projectId: "wh40k-data-slate",
+    storageBucket: "wh40k-data-slate.firebasestorage.app",
+    messagingSenderId: "382792444120",
+    appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
-/* ===================== CONFIG ===================== */
+  // Audio (GitHub Pages — ścieżki względne w repo)
+  const DEFAULT_PING_URL = "assets/audio/global/Ping.mp3";
+  const DEFAULT_MSG_URL  = "assets/audio/global/Message.mp3";
 
-const DEFAULT_PING_URL =
-  "assets/audio/global/Ping.mp3";
+  // Layouty (Twoje ścieżki)
+  const LAYOUT_BG = {
+    inquisition: "assets/layouts/inquisition/DataSlate_Inq.png",
+    mechanicus:  "assets/layouts/mechanicus/DataSlate_04.png",
+    militarum:   "assets/layouts/militarum/DataSlate_04.png",
+    chaos_undivided: "assets/layouts/chaos_undivided/DataSlate_04.png",
+    khorne:      "assets/layouts/khorne/DataSlate_04.png",
+    nurgle:      "assets/layouts/nurgle/DataSlate_04.png",
+    tzeentch:    "assets/layouts/tzeentch/DataSlate_04.png",
+    slaanesh:    "assets/layouts/slaanesh/DataSlate_04.png",
+  };
 
-const DEFAULT_MSG_URL =
-  "assets/audio/global/Message.mp3";
+  // Prawdziwe proporcje Twoich PNG (ważne dla fit panelu!)
+  const LAYOUT_AR = {
+    inquisition: 707/1023,
+    default04:   1131/1600,
+  };
 
-const LAYOUT_BG = {
-  inquisition: "assets/layouts/inquisition/DataSlate_Inq.png",
-  mechanicus:  "assets/layouts/mechanicus/DataSlate_04.png",
-  militarum:   "assets/layouts/militarum/DataSlate_04.png",
-  chaos_undivided:"assets/layouts/chaos_undivided/DataSlate_04.png",
-  khorne:      "assets/layouts/khorne/DataSlate_04.png",
-  nurgle:      "assets/layouts/nurgle/DataSlate_04.png",
-  tzeentch:    "assets/layouts/tzeentch/DataSlate_04.png",
-  slaanesh:   "assets/layouts/slaanesh/DataSlate_04.png",
-};
+  // Bezpieczne marginesy (celowo z zapasem)
+  const SCREEN_INSETS = {
+    inquisition: { top:"14%", right:"14%", bottom:"26%", left:"18%" },
+    default04:   { top:"14%", right:"14%", bottom:"22%", left:"18%" },
+  };
 
-const SCREEN_INSETS = {
-  inquisition:{ top:"10%", right:"12%", bottom:"24%", left:"16%" },
-  default04:  { top:"12%", right:"12%", bottom:"20%", left:"16%" },
-};
+  // Fonty per frakcja (z fallbackiem do Calibri)
+  const FONT_STACK = {
+    mechanicus:      '"Share Tech Mono", Calibri, Arial, sans-serif',
+    inquisition:     '"Cinzel", Calibri, Arial, sans-serif',
+    militarum:       '"Rajdhani", Calibri, Arial, sans-serif',
+    khorne:          '"Black Ops One", Calibri, Arial, sans-serif',
+    nurgle:          '"Staatliches", Calibri, Arial, sans-serif',
+    tzeentch:        '"Orbitron", Calibri, Arial, sans-serif',
+    slaanesh:        '"Questrial", Calibri, Arial, sans-serif',
+    chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
+  };
 
-const LAYOUTS = {
-  mechanicus:{
-    font:"'Share Tech Mono', Calibri, monospace",
-    prefixes:["++ ENGAGE LITURGY ++"],
-    suffixes:["++ PRAY TO THE CODE ++"]
-  }
-};
+  const el = {
+    unlock: document.getElementById("unlock"),
+    panel: document.getElementById("panel"),
+    layoutImg: document.getElementById("layoutImg"),
+    screen: document.getElementById("screen"),
+    prefixLine: document.getElementById("prefixLine"),
+    suffixLine: document.getElementById("suffixLine"),
+    msg: document.getElementById("msg"),
+    debug: document.getElementById("debug"),
+  };
 
-/* ===================== ELEMENTY ===================== */
-const el = {
-  unlock:document.getElementById("audioUnlock"),
-  wrap:document.getElementById("wrap"),
-  panel:document.getElementById("panel"),
-  screen:document.getElementById("screen"),
-  prefix:document.getElementById("prefixLine"),
-  msg:document.getElementById("msg"),
-  suffix:document.getElementById("suffixLine"),
-  debug:document.getElementById("debug")
-};
-
-/* ===================== DEBUG ===================== */
-const debug = new URLSearchParams(location.search).get("debug")==="1";
-function log(t){
-  if(!debug) return;
-  el.debug.style.display="block";
-  el.debug.textContent+=t+"\n";
-  el.debug.scrollTop=el.debug.scrollHeight;
-}
-
-/* ===================== AUDIO ===================== */
-let audioArmed=false;
-el.unlock.onclick=()=>{
-  audioArmed=true;
-  el.unlock.style.display="none";
-  log("AUDIO ARMED");
-};
-
-function playOnce(url){
-  if(!audioArmed){ log("BLOCKED AUDIO"); return; }
-  const a=new Audio(url);
-  a.play().catch(e=>log("AUDIO ERR "+e));
-}
-
-/* ===================== LAYOUT ===================== */
-function applyLayout(faction,color){
-  const bg = LAYOUT_BG[faction] || LAYOUT_BG.mechanicus;
-  document.documentElement.style.setProperty("--layout-bg",`url(${bg})`);
-  document.documentElement.style.setProperty("--accent",color||"#00ff66");
-
-  const inset = (faction==="inquisition") ? SCREEN_INSETS.inquisition : SCREEN_INSETS.default04;
-  for(const k in inset){
-    document.documentElement.style.setProperty(`--screen-${k}`,inset[k]);
+  const debugOn = new URLSearchParams(location.search).get("debug") === "1";
+  function dbg(s){
+    console.log("[Infoczytnik]", s);
+    if(!debugOn) return;
+    el.debug.style.display = "block";
+    el.debug.textContent = (el.debug.textContent + "\n" + s).trim();
+    el.debug.scrollTop = el.debug.scrollHeight;
   }
 
-  el.panel.dataset.ar = (faction==="inquisition") ? "inq" : "04";
-}
+  // Audio unlock (Chrome policy)
+  let audioArmed = false;
+  function armAudio(){
+    if(audioArmed) return;
+    audioArmed = true;
+    el.unlock.style.display = "none";
+    dbg("AUDIO ARMED");
+  }
+  el.unlock.addEventListener("click", armAudio);
+  window.addEventListener("keydown", armAudio);
 
-/* ===================== STANY ===================== */
-function showIdle(){
-  el.screen.style.display="none";
-  el.prefix.textContent="";
-  el.msg.textContent="";
-  el.suffix.textContent="";
-}
-
-function showMessage(p,m,s){
-  el.prefix.textContent=p||"";
-  el.msg.textContent=m||"";
-  el.suffix.textContent=s||"";
-  el.screen.style.display="block";
-}
-
-/* ===================== FIRESTORE ===================== */
-const ref = doc(db,"dataslate","current");
-let lastNonce=null;
-
-onSnapshot(ref,snap=>{
-  if(!snap.exists()) return;
-  const d=snap.data();
-  if(d.nonce===lastNonce) return;
-  lastNonce=d.nonce;
-
-  log("EVENT "+d.type+" "+d.faction);
-
-  applyLayout(d.faction,d.color);
-
-  if(d.type==="clear"){
-    showIdle();
-    return;
+  async function playUrlOnce(url, kind){
+    dbg(`play(${kind}): ${url}`);
+    if(!audioArmed){ dbg("BLOCKED: audio not armed"); return; }
+    try{
+      const a = new Audio(url);
+      a.addEventListener("error", () => dbg(`Audio element error (${kind})`));
+      await a.play();
+      dbg(`OK: playing (${kind})`);
+    }catch(e){
+      dbg(`ERROR play(${kind}): ${e?.message || e}`);
+    }
   }
 
-  if(d.type==="ping"){
-    playOnce(d.pingUrl||DEFAULT_PING_URL);
-    return;
+  // Dopasowanie panelu do okna (contain), na podstawie aspect ratio layoutu
+  function fitPanel(ar){
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Start: pełna wysokość
+    let h = vh;
+    let w = h * ar;
+
+    // Jeśli za szeroko → dopasuj do szerokości
+    if(w > vw){
+      w = vw;
+      h = w / ar;
+    }
+
+    el.panel.style.width  = Math.round(w) + "px";
+    el.panel.style.height = Math.round(h) + "px";
   }
 
-  if(d.type==="message"){
-    showMessage(d.prefix,d.text,d.suffix);
-    playOnce(d.msgUrl||DEFAULT_MSG_URL);
+  function setInsets(preset){
+    document.documentElement.style.setProperty("--screen-top", preset.top);
+    document.documentElement.style.setProperty("--screen-right", preset.right);
+    document.documentElement.style.setProperty("--screen-bottom", preset.bottom);
+    document.documentElement.style.setProperty("--screen-left", preset.left);
   }
-});
 
-/* START */
-applyLayout("mechanicus","#00ff66");
-showIdle();
-log("ready");
+  let currentAr = LAYOUT_AR.default04;
+
+  function applyLayout(factionKey, color){
+    const key = (factionKey && LAYOUT_BG[factionKey]) ? factionKey : "mechanicus";
+
+    // Layout image
+    const imgPath = LAYOUT_BG[key] || LAYOUT_BG.mechanicus;
+    el.layoutImg.src = imgPath;
+
+    // Font + kolor
+    document.documentElement.style.setProperty("--font", FONT_STACK[key] || 'Calibri, Arial, sans-serif');
+    document.documentElement.style.setProperty("--accent", color || "#00ff66");
+
+    // Insets + aspect ratio
+    if(key === "inquisition"){
+      setInsets(SCREEN_INSETS.inquisition);
+      currentAr = LAYOUT_AR.inquisition;
+    }else{
+      setInsets(SCREEN_INSETS.default04);
+      currentAr = LAYOUT_AR.default04;
+    }
+
+    fitPanel(currentAr);
+  }
+
+  // Efekt „nowa wiadomość”
+  let glitchTimer = null;
+  function triggerGlitch(){
+    el.panel.classList.add("glitch-on");
+    if(glitchTimer) clearTimeout(glitchTimer);
+    glitchTimer = setTimeout(()=>el.panel.classList.remove("glitch-on"), 3200);
+  }
+
+  function showMessage(prefix, text, suffix){
+    el.prefixLine.textContent = prefix || "";
+    el.msg.textContent = text || "";
+    el.msg.setAttribute("data-text", text || "");
+    el.suffixLine.textContent = suffix || "";
+    el.screen.style.display = "block";
+    el.screen.scrollTop = 0;
+    triggerGlitch();
+  }
+
+  function hideTextKeepLayout(){
+    el.prefixLine.textContent = "";
+    el.msg.textContent = "";
+    el.msg.setAttribute("data-text", "");
+    el.suffixLine.textContent = "";
+    el.screen.style.display = "none";
+  }
+
+  // Resize
+  window.addEventListener("resize", () => fitPanel(currentAr));
+
+  // Firestore
+  const currentRef = doc(db, "dataslate", "current");
+  let lastNonce = null;
+
+  onSnapshot(currentRef, (snap)=>{
+    if(!snap.exists()){
+      dbg("current doc missing");
+      return;
+    }
+    const d = snap.data() || {};
+
+    dbg(`current: type=${d.type} faction=${d.faction} nonce=${d.nonce}`);
+
+    if(d.nonce && d.nonce === lastNonce) return;
+    lastNonce = d.nonce || null;
+
+    // Tolerancja nazw pól (bo w różnych wersjach GM mogły się różnić)
+    const faction = d.faction || "mechanicus";
+    const color   = d.color || d.fontColor || "#00ff66";
+
+    applyLayout(faction, color);
+
+    if(d.type === "clear"){
+      hideTextKeepLayout();
+      return;
+    }
+
+    if(d.type === "ping"){
+      const pingUrl = d.pingUrl || DEFAULT_PING_URL;
+      triggerGlitch();
+      playUrlOnce(pingUrl, "ping");
+      return;
+    }
+
+    if(d.type === "message"){
+      // Obsłuż dwie wersje: (A) GM wysyła gotowe prefix/suffix, (B) GM wysyła tekst i fillery osobno
+      const prefix = d.prefix ?? "";
+      const text   = d.text ?? "";
+      const suffix = d.suffix ?? "";
+
+      if((text || "").trim().length === 0){
+        // brak tekstu → chowamy (ale zostawiamy layout)
+        hideTextKeepLayout();
+      }else{
+        showMessage(prefix, text, suffix);
+      }
+
+      const msgUrl = d.msgUrl || d.messageUrl || DEFAULT_MSG_URL;
+      playUrlOnce(msgUrl, "message");
+      return;
+    }
+
+    // jeśli nieznany typ: nic nie psuj
+  }, (err)=>{
+    dbg("ERROR snapshot: " + (err?.message || err));
+  });
+
+  // Start: pokaż layout domyślny, tekst ukryty
+  applyLayout("mechanicus", "#00ff66");
+  hideTextKeepLayout();
+  dbg("ready");
 </script>
 </body>
 </html>
