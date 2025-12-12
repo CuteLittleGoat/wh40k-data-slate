@@ -26,7 +26,6 @@
   html,body{height:100%; margin:0; background:#000; overflow:hidden;}
   body{color:var(--accent); font-family:var(--font);}
 
-  /* FULLSCREEN wrapper */
   .wrap{
     width:100vw; height:100vh;
     display:flex;
@@ -36,15 +35,12 @@
     overflow:hidden;
   }
 
-  /* Panel ma rozmiar ustawiany JS (fit contain) */
   .panel{
     position:relative;
     overflow:hidden;
     background:#000;
-    /* width/height ustawiane w JS */
   }
 
-  /* Layout jako IMG (stabilne contain na każdym ekranie) */
   .layout-img{
     position:absolute;
     inset:0;
@@ -57,7 +53,7 @@
     pointer-events:none;
   }
 
-  /* CRT / Scanlines overlay */
+  /* CRT / Scanlines overlay (delikatne, ale widoczne) */
   .crt::before{
     content:"";
     position:absolute;
@@ -66,34 +62,32 @@
     background:
       repeating-linear-gradient(
         to bottom,
-        rgba(255,255,255,.035) 0px,
-        rgba(255,255,255,.035) 1px,
+        rgba(255,255,255,.05) 0px,
+        rgba(255,255,255,.05) 1px,
         rgba(0,0,0,0) 3px,
         rgba(0,0,0,0) 7px
       );
-    opacity:.18;
+    opacity:.24;
     mix-blend-mode: overlay;
-    animation: scanMove 14s linear infinite;
+    animation: scanMove 12s linear infinite;
   }
-
   .crt::after{
     content:"";
     position:absolute;
     inset:-2%;
     pointer-events:none;
     background:
-      radial-gradient(closest-side, rgba(0,0,0,0) 65%, rgba(0,0,0,.55) 100%),
+      radial-gradient(closest-side, rgba(0,0,0,0) 62%, rgba(0,0,0,.65) 100%),
       rgba(255,255,255,.03);
-    opacity:.55;
-    animation: flicker 10s infinite;
+    opacity:.60;
+    animation: flickerBg 9s infinite;
   }
-
-  @keyframes scanMove { 0%{transform:translateY(0)} 100%{transform:translateY(18px)} }
-  @keyframes flicker {
-    0%,90%,100%{opacity:.55}
-    91%{opacity:.50}
-    93%{opacity:.58}
-    96%{opacity:.52}
+  @keyframes scanMove { 0%{transform:translateY(0)} 100%{transform:translateY(20px)} }
+  @keyframes flickerBg {
+    0%,92%,100%{opacity:.60}
+    93%{opacity:.52}
+    95%{opacity:.66}
+    97%{opacity:.56}
   }
 
   /* Bezpieczne pole na tekst – scroll tylko tutaj */
@@ -108,18 +102,68 @@
     -webkit-overflow-scrolling:touch;
     padding: clamp(14px, 2.4vw, 24px);
 
-    display:none; /* pokażemy gdy jest wiadomość */
+    display:none;
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
+  /* ====== NOWE: „TRANSMISSION EFFECT” (puls + drganie) ======
+     Efekt włączamy klasą .tx-on na .screen i trwa kilka sekund.
+  */
+
+  /* Puls jasności (miganie/oddychanie) */
+  @keyframes txPulse {
+    0%   { filter: brightness(1.00); opacity: 1; }
+    10%  { filter: brightness(1.35); opacity: .98; }
+    20%  { filter: brightness(.85); opacity: .92; }
+    32%  { filter: brightness(1.25); opacity: 1; }
+    45%  { filter: brightness(.90); opacity: .94; }
+    60%  { filter: brightness(1.18); opacity: 1; }
+    78%  { filter: brightness(.96); opacity: .98; }
+    100% { filter: brightness(1.00); opacity: 1; }
+  }
+
+  /* Drganie (bardzo lekkie) */
+  @keyframes txJitter {
+    0%   { transform: translate(0,0); }
+    8%   { transform: translate(0, 1px); }
+    16%  { transform: translate(1px, 0); }
+    24%  { transform: translate(0,-1px); }
+    32%  { transform: translate(-1px,0); }
+    40%  { transform: translate(0, 1px); }
+    48%  { transform: translate(1px,-1px); }
+    56%  { transform: translate(-1px,1px); }
+    64%  { transform: translate(0,0); }
+    72%  { transform: translate(1px,0); }
+    80%  { transform: translate(0,-1px); }
+    88%  { transform: translate(-1px,0); }
+    100% { transform: translate(0,0); }
+  }
+
+  .tx-on{
+    animation: txPulse 5.2s ease-out 1;
+  }
+
+  /* Drganie stosujemy na samym tekście, żeby scroll nie wariował */
+  .tx-on .msg,
+  .tx-on .prefixRow,
+  .tx-on .suffixRow{
+    animation: txJitter .55s linear 10;
+  }
+
+  /* Prefix / suffix / tekst */
+  .prefixRow, .suffixRow{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+
   .prefix, .suffix{
-    color: rgba(255,255,255,.82);
+    color: rgba(255,255,255,.86);
     font-size: clamp(12px, 2.0vw, 16px);
     letter-spacing: 1.5px;
     margin: 0 0 10px 0;
     white-space: pre-wrap;
   }
-
   .suffix{ margin-top: 12px; }
 
   .msg{
@@ -129,33 +173,20 @@
     white-space: pre-wrap;
     word-break: break-word;
     color: var(--accent);
+    text-shadow: 0 0 14px rgba(0,255,120,.10), 0 2px 6px rgba(0,0,0,.70);
   }
 
-  /* Delikatny glitch tylko chwilę po nowej wiadomości */
-  .glitch-on .msg{
-    animation: msgGlow 2.8s ease-out 1;
-  }
-  .glitch-on .msg::before,
-  .glitch-on .msg::after{
-    content: attr(data-text);
-    position:absolute; left:0; top:0;
-    width:100%;
-    white-space: pre-wrap;
-    word-break: break-word;
-    opacity:.10;
-    pointer-events:none;
-    filter: blur(.25px);
-  }
-  .glitch-on .msg::before{ transform: translate(-1px, 0); }
-  .glitch-on .msg::after { transform: translate( 1px, 0); }
-
-  @keyframes msgGlow{
-    0%{ text-shadow:0 2px 6px rgba(0,0,0,.70); }
-    20%{ text-shadow:0 0 18px rgba(0,255,102,.22), 0 2px 6px rgba(0,0,0,.70); }
-    100%{ text-shadow:0 2px 6px rgba(0,0,0,.70); }
+  /* miejsce na logo (na razie ukryte, włączymy w następnym kroku) */
+  .logo{
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display:none; /* włączymy później */
+    opacity: .92;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.7));
   }
 
-  /* Audio unlock overlay (wymóg Chrome dla autoplay) */
+  /* Audio unlock overlay */
   .unlock{
     position:fixed;
     inset:0;
@@ -207,7 +238,7 @@
     <div class="box">
       <div class="title">Kliknij raz, aby odblokować dźwięk</div>
       <div class="hint">
-        Chrome blokuje dźwięk, dopóki w tej karcie nie wykonasz akcji.
+        Chrome blokuje audio, dopóki w tej karcie nie wykonasz akcji.
         To jednorazowe (po odświeżeniu trzeba kliknąć ponownie).
       </div>
       <div class="tiny">(Kliknij gdziekolwiek)</div>
@@ -218,9 +249,16 @@
     <div class="panel crt" id="panel">
       <img class="layout-img" id="layoutImg" alt="layout" />
       <div class="screen" id="screen">
-        <div class="prefix" id="prefixLine"></div>
-        <div class="msg" id="msg" data-text=""></div>
-        <div class="suffix" id="suffixLine"></div>
+        <div class="prefixRow">
+          <img class="logo" id="logo" alt="logo" />
+          <div class="prefix" id="prefixLine"></div>
+        </div>
+
+        <div class="msg" id="msg"></div>
+
+        <div class="suffixRow">
+          <div class="suffix" id="suffixLine"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -228,7 +266,6 @@
   <div id="debug"></div>
 
 <script type="module">
-  // Firebase (modular) — zgodnie z Twoim projektem
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
@@ -244,11 +281,9 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  // Audio (GitHub Pages — ścieżki względne w repo)
   const DEFAULT_PING_URL = "assets/audio/global/Ping.mp3";
   const DEFAULT_MSG_URL  = "assets/audio/global/Message.mp3";
 
-  // Layouty (Twoje ścieżki)
   const LAYOUT_BG = {
     inquisition: "assets/layouts/inquisition/DataSlate_Inq.png",
     mechanicus:  "assets/layouts/mechanicus/DataSlate_04.png",
@@ -260,19 +295,16 @@
     slaanesh:    "assets/layouts/slaanesh/DataSlate_04.png",
   };
 
-  // Prawdziwe proporcje Twoich PNG (ważne dla fit panelu!)
   const LAYOUT_AR = {
     inquisition: 707/1023,
     default04:   1131/1600,
   };
 
-  // Bezpieczne marginesy (celowo z zapasem)
   const SCREEN_INSETS = {
     inquisition: { top:"14%", right:"14%", bottom:"26%", left:"18%" },
     default04:   { top:"14%", right:"14%", bottom:"22%", left:"18%" },
   };
 
-  // Fonty per frakcja (z fallbackiem do Calibri)
   const FONT_STACK = {
     mechanicus:      '"Share Tech Mono", Calibri, Arial, sans-serif',
     inquisition:     '"Cinzel", Calibri, Arial, sans-serif',
@@ -284,6 +316,19 @@
     chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
   };
 
+  // Przygotowane pod przyszłość (foldery w assets/logos/...)
+  // Na razie logo jest ukryte w CSS (display:none). Włączymy w następnym kroku.
+  const FACTION_LOGO = {
+    inquisition: "assets/logos/inquisition.png",
+    mechanicus:  "assets/logos/mechanicus.png",
+    militarum:   "assets/logos/militarum.png",
+    chaos_undivided: "assets/logos/chaos_undivided.png",
+    khorne:      "assets/logos/khorne.png",
+    nurgle:      "assets/logos/nurgle.png",
+    tzeentch:    "assets/logos/tzeentch.png",
+    slaanesh:    "assets/logos/slaanesh.png",
+  };
+
   const el = {
     unlock: document.getElementById("unlock"),
     panel: document.getElementById("panel"),
@@ -292,6 +337,7 @@
     prefixLine: document.getElementById("prefixLine"),
     suffixLine: document.getElementById("suffixLine"),
     msg: document.getElementById("msg"),
+    logo: document.getElementById("logo"),
     debug: document.getElementById("debug"),
   };
 
@@ -304,7 +350,6 @@
     el.debug.scrollTop = el.debug.scrollHeight;
   }
 
-  // Audio unlock (Chrome policy)
   let audioArmed = false;
   function armAudio(){
     if(audioArmed) return;
@@ -328,16 +373,13 @@
     }
   }
 
-  // Dopasowanie panelu do okna (contain), na podstawie aspect ratio layoutu
   function fitPanel(ar){
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Start: pełna wysokość
     let h = vh;
     let w = h * ar;
 
-    // Jeśli za szeroko → dopasuj do szerokości
     if(w > vw){
       w = vw;
       h = w / ar;
@@ -359,15 +401,11 @@
   function applyLayout(factionKey, color){
     const key = (factionKey && LAYOUT_BG[factionKey]) ? factionKey : "mechanicus";
 
-    // Layout image
-    const imgPath = LAYOUT_BG[key] || LAYOUT_BG.mechanicus;
-    el.layoutImg.src = imgPath;
+    el.layoutImg.src = LAYOUT_BG[key] || LAYOUT_BG.mechanicus;
 
-    // Font + kolor
     document.documentElement.style.setProperty("--font", FONT_STACK[key] || 'Calibri, Arial, sans-serif');
     document.documentElement.style.setProperty("--accent", color || "#00ff66");
 
-    // Insets + aspect ratio
     if(key === "inquisition"){
       setInsets(SCREEN_INSETS.inquisition);
       currentAr = LAYOUT_AR.inquisition;
@@ -375,40 +413,40 @@
       setInsets(SCREEN_INSETS.default04);
       currentAr = LAYOUT_AR.default04;
     }
-
     fitPanel(currentAr);
+
+    // LOGO (na razie nie pokazujemy – włączymy w następnym kroku)
+    el.logo.src = FACTION_LOGO[key] || "";
   }
 
-  // Efekt „nowa wiadomość”
-  let glitchTimer = null;
-  function triggerGlitch(){
-    el.panel.classList.add("glitch-on");
-    if(glitchTimer) clearTimeout(glitchTimer);
-    glitchTimer = setTimeout(()=>el.panel.classList.remove("glitch-on"), 3200);
+  // ====== TRANSMISSION EFFECT (miganie + drganie) ======
+  let txTimer = null;
+  function triggerTransmissionEffect(){
+    el.screen.classList.remove("tx-on"); // restart
+    void el.screen.offsetWidth;          // wymuszenie reflow
+    el.screen.classList.add("tx-on");
+    if(txTimer) clearTimeout(txTimer);
+    txTimer = setTimeout(()=> el.screen.classList.remove("tx-on"), 5400);
   }
 
   function showMessage(prefix, text, suffix){
     el.prefixLine.textContent = prefix || "";
     el.msg.textContent = text || "";
-    el.msg.setAttribute("data-text", text || "");
     el.suffixLine.textContent = suffix || "";
     el.screen.style.display = "block";
     el.screen.scrollTop = 0;
-    triggerGlitch();
+    triggerTransmissionEffect();
   }
 
   function hideTextKeepLayout(){
     el.prefixLine.textContent = "";
     el.msg.textContent = "";
-    el.msg.setAttribute("data-text", "");
     el.suffixLine.textContent = "";
     el.screen.style.display = "none";
   }
 
-  // Resize
   window.addEventListener("resize", () => fitPanel(currentAr));
 
-  // Firestore
   const currentRef = doc(db, "dataslate", "current");
   let lastNonce = null;
 
@@ -418,13 +456,11 @@
       return;
     }
     const d = snap.data() || {};
-
     dbg(`current: type=${d.type} faction=${d.faction} nonce=${d.nonce}`);
 
     if(d.nonce && d.nonce === lastNonce) return;
     lastNonce = d.nonce || null;
 
-    // Tolerancja nazw pól (bo w różnych wersjach GM mogły się różnić)
     const faction = d.faction || "mechanicus";
     const color   = d.color || d.fontColor || "#00ff66";
 
@@ -436,20 +472,18 @@
     }
 
     if(d.type === "ping"){
+      triggerTransmissionEffect();
       const pingUrl = d.pingUrl || DEFAULT_PING_URL;
-      triggerGlitch();
       playUrlOnce(pingUrl, "ping");
       return;
     }
 
     if(d.type === "message"){
-      // Obsłuż dwie wersje: (A) GM wysyła gotowe prefix/suffix, (B) GM wysyła tekst i fillery osobno
       const prefix = d.prefix ?? "";
       const text   = d.text ?? "";
       const suffix = d.suffix ?? "";
 
       if((text || "").trim().length === 0){
-        // brak tekstu → chowamy (ale zostawiamy layout)
         hideTextKeepLayout();
       }else{
         showMessage(prefix, text, suffix);
@@ -459,8 +493,6 @@
       playUrlOnce(msgUrl, "message");
       return;
     }
-
-    // jeśli nieznany typ: nic nie psuj
   }, (err)=>{
     dbg("ERROR snapshot: " + (err?.message || err));
   });
