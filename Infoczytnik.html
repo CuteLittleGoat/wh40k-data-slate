@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>WH40k Data-Slate — Infoczytnik</title>
 
-<!-- Google Fonts (fallback do Calibri/Arial jeśli brak internetu) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
@@ -15,7 +14,6 @@
     --accent:#00ff66;
     --font: Calibri, Arial, sans-serif;
 
-    /* Bezpieczne marginesy tekstu */
     --screen-top: 14%;
     --screen-right: 14%;
     --screen-bottom: 22%;
@@ -30,7 +28,7 @@
     --prefix-color: rgba(255,255,255,.88);
     --suffix-color: rgba(255,255,255,.86);
 
-    /* Efekt "transmission" (pozostawiony w kodzie, ale obecnie wyłączony w JS) */
+    /* Efekt "transmission" — zostawiony w kodzie, ale uruchamianie jest WYŁĄCZONE */
     --tx-bright-peak: 3.00;
     --tx-jitter: 15px;
     --tx-duration: 3s;
@@ -104,7 +102,6 @@
     97%{opacity:.60}
   }
 
-  /* Pole na tekst */
   .screen{
     position:absolute;
     top:var(--screen-top);
@@ -120,10 +117,7 @@
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
-  /* ====== TRANSMISSION EFFECT (puls + jitter) ======
-     UWAGA: pozostawione w kodzie, ale obecnie NIEURUCHAMIANE.
-     (Wyłączone w JS – patrz komentarz przy triggerTransmissionEffect()).
-  */
+  /* ====== TRANSMISSION EFFECT (zostawione w CSS, ale NIEURUCHAMIANE) ====== */
   @keyframes txPulse {
     0%   { filter: brightness(1.00); opacity: 1; }
     10%  { filter: brightness(var(--tx-bright-peak)); opacity: 1; }
@@ -157,7 +151,6 @@
     animation: txJitter .6s linear 5;
   }
 
-  /* Prefix + logo po PRAWEJ */
   .prefixRow{
     display:flex;
     align-items:flex-start;
@@ -205,11 +198,7 @@
     text-shadow: 0 0 18px rgba(0,255,120,.18), 0 2px 6px rgba(0,0,0,.70);
   }
 
-  .suffixRow{
-    display:flex;
-    align-items:flex-start;
-  }
-
+  .suffixRow{display:flex; align-items:flex-start;}
   .suffix{
     color: var(--suffix-color);
     font-size: var(--suffix-font-size);
@@ -218,7 +207,6 @@
     white-space: pre-wrap;
   }
 
-  /* Audio unlock overlay */
   .unlock{
     position:fixed;
     inset:0;
@@ -240,21 +228,18 @@
     max-width:560px;
     background:rgba(0,0,0,.35);
   }
-  .unlock .title{font-size:18px; margin-bottom:8px;}
-  .unlock .hint{font-size:13px; opacity:.78; line-height:1.35;}
-  .unlock .tiny{margin-top:10px; font-size:12px; opacity:.6;}
 </style>
 </head>
 
 <body>
   <div class="unlock" id="unlock">
     <div class="box">
-      <div class="title">Kliknij raz, aby odblokować dźwięk</div>
-      <div class="hint">
+      <div style="font-size:18px; margin-bottom:8px;">Kliknij raz, aby odblokować dźwięk</div>
+      <div style="font-size:13px; opacity:.78; line-height:1.35;">
         Chrome blokuje audio, dopóki w tej karcie nie wykonasz akcji.
         To jednorazowe (po odświeżeniu trzeba kliknąć ponownie).
       </div>
-      <div class="tiny">(Kliknij gdziekolwiek)</div>
+      <div style="margin-top:10px; font-size:12px; opacity:.6;">(Kliknij gdziekolwiek)</div>
     </div>
   </div>
 
@@ -310,11 +295,7 @@
     slaanesh:    `assets/layouts/slaanesh/DataSlate_04.png?v=${ASSET_VERSION}`,
   };
 
-  const LAYOUT_AR = {
-    inquisition: 707/1023,
-    default04:   1131/1600,
-  };
-
+  const LAYOUT_AR = { inquisition: 707/1023, default04: 1131/1600 };
   const SCREEN_INSETS = {
     inquisition: { top:"14%", right:"14%", bottom:"26%", left:"18%" },
     default04:   { top:"14%", right:"14%", bottom:"22%", left:"18%" },
@@ -369,33 +350,22 @@
 
   async function playUrlOnce(url){
     if(!audioArmed) return;
-    try{
-      const a = new Audio(url);
-      await a.play();
-    }catch(e){ /* cisza */ }
+    try{ await new Audio(url).play(); } catch(e){}
   }
 
   function fitPanel(ar){
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    let h = vh;
-    let w = h * ar;
-
-    if(w > vw){
-      w = vw;
-      h = w / ar;
-    }
-
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let h = vh, w = h * ar;
+    if(w > vw){ w = vw; h = w / ar; }
     el.panel.style.width  = Math.round(w) + "px";
     el.panel.style.height = Math.round(h) + "px";
   }
 
-  function setInsets(preset){
-    document.documentElement.style.setProperty("--screen-top", preset.top);
-    document.documentElement.style.setProperty("--screen-right", preset.right);
-    document.documentElement.style.setProperty("--screen-bottom", preset.bottom);
-    document.documentElement.style.setProperty("--screen-left", preset.left);
+  function setInsets(p){
+    document.documentElement.style.setProperty("--screen-top", p.top);
+    document.documentElement.style.setProperty("--screen-right", p.right);
+    document.documentElement.style.setProperty("--screen-bottom", p.bottom);
+    document.documentElement.style.setProperty("--screen-left", p.left);
   }
 
   let currentAr = LAYOUT_AR.default04;
@@ -421,7 +391,6 @@
 
   function applyLayout(factionKey, color){
     const key = (factionKey && LAYOUT_BG[factionKey]) ? factionKey : "mechanicus";
-
     el.layoutImg.src = LAYOUT_BG[key] || LAYOUT_BG.mechanicus;
 
     document.documentElement.style.setProperty("--font", FONT_STACK[key] || 'Calibri, Arial, sans-serif');
@@ -435,48 +404,48 @@
       currentAr = LAYOUT_AR.default04;
     }
     fitPanel(currentAr);
-
     setLogoForFaction(key);
   }
 
-  // ====== TRANSMISSION EFFECT (WYŁĄCZONE) ======
-  // Ta funkcja dodaje klasę "tx-on" na .screen, uruchamiając animacje:
-  // - puls jasności (txPulse)
-  // - drganie tekstu (txJitter)
-  // Celowo NIE wywołujemy jej teraz, bo efekt różnił się wizualnie na laptopie i tablecie.
-  // W przyszłości można wrócić: odkomentować wywołania w "ping" i "message".
-  function triggerTransmissionEffect(){
-    el.screen.classList.remove("tx-on");
-    void el.screen.offsetWidth;
-    el.screen.classList.add("tx-on");
-    setTimeout(()=> el.screen.classList.remove("tx-on"), 3000);
+  function applyTextStyleFromDoc(d){
+    if(d.msgFontSize)    document.documentElement.style.setProperty("--msg-font-size", String(d.msgFontSize));
+    if(d.prefixFontSize) document.documentElement.style.setProperty("--prefix-font-size", String(d.prefixFontSize));
+    if(d.suffixFontSize) document.documentElement.style.setProperty("--suffix-font-size", String(d.suffixFontSize));
+    if(d.prefixColor)    document.documentElement.style.setProperty("--prefix-color", String(d.prefixColor));
+    if(d.suffixColor)    document.documentElement.style.setProperty("--suffix-color", String(d.suffixColor));
   }
 
+  // ====== TRANSMISSION EFFECT (WYŁĄCZONE) ======
+  // Ta funkcja dodawała klasę "tx-on" na .screen, uruchamiając animacje:
+  // - puls jasności (txPulse)
+  // - drganie tekstu (txJitter)
+  // Celowo WYŁĄCZONE: chcemy, żeby efekt NIE pojawiał się w ogóle.
+  // W przyszłości można wrócić: odkomentować poniższy blok i wywołania w ping/message.
+  //
+  // function triggerTransmissionEffect(){
+  //   el.screen.classList.remove("tx-on");
+  //   void el.screen.offsetWidth;
+  //   el.screen.classList.add("tx-on");
+  //   setTimeout(()=> el.screen.classList.remove("tx-on"), 3000);
+  // }
+
   function showMessage(prefix, text, suffix){
+    // HARD-KILL: nawet gdyby jakaś starsza wersja dodała klasę, usuwamy ją stale.
+    el.screen.classList.remove("tx-on");
+
     el.prefixLine.textContent = prefix || "";
     el.msg.textContent = text || "";
     el.suffixLine.textContent = suffix || "";
     el.screen.scrollTop = 0;
 
-    // triggerTransmissionEffect(); // <-- CELOWO WYŁĄCZONE (patrz komentarz wyżej)
+    // triggerTransmissionEffect(); // WYŁĄCZONE
   }
 
   function clearMessageKeepLayout(){
+    el.screen.classList.remove("tx-on");
     el.prefixLine.textContent = "";
     el.msg.textContent = "";
     el.suffixLine.textContent = "";
-  }
-
-  function applyTextStyleFromDoc(d){
-    // Te pola będzie wysyłał GM (opcjonalnie)
-    // msgFontSize / prefixFontSize / suffixFontSize: np. "28px", "18px", "1.2rem"
-    // prefixColor / suffixColor: np. "#ffffff", "rgba(255,255,255,0.8)"
-    if(d.msgFontSize)    document.documentElement.style.setProperty("--msg-font-size", String(d.msgFontSize));
-    if(d.prefixFontSize) document.documentElement.style.setProperty("--prefix-font-size", String(d.prefixFontSize));
-    if(d.suffixFontSize) document.documentElement.style.setProperty("--suffix-font-size", String(d.suffixFontSize));
-
-    if(d.prefixColor) document.documentElement.style.setProperty("--prefix-color", String(d.prefixColor));
-    if(d.suffixColor) document.documentElement.style.setProperty("--suffix-color", String(d.suffixColor));
   }
 
   window.addEventListener("resize", () => fitPanel(currentAr));
@@ -486,10 +455,13 @@
 
   onSnapshot(currentRef, (snap)=>{
     if(!snap.exists()) return;
-
     const d = snap.data() || {};
+
     if(d.nonce && d.nonce === lastNonce) return;
     lastNonce = d.nonce || null;
+
+    // HARD-KILL przy każdej aktualizacji (na wypadek cache/starej wersji)
+    el.screen.classList.remove("tx-on");
 
     const faction = d.faction || "mechanicus";
     const color   = d.color || d.fontColor || "#00ff66";
@@ -503,7 +475,7 @@
     }
 
     if(d.type === "ping"){
-      // triggerTransmissionEffect(); // <-- CELOWO WYŁĄCZONE
+      // triggerTransmissionEffect(); // WYŁĄCZONE
       const pingUrl = d.pingUrl ? String(d.pingUrl) : DEFAULT_PING_URL;
       playUrlOnce(pingUrl);
       return;
@@ -511,7 +483,6 @@
 
     if(d.type === "message"){
       const text = d.text ?? "";
-
       let prefix = d.prefix ?? d.prefixText ?? "";
       let suffix = d.suffix ?? d.suffixText ?? "";
 
@@ -522,12 +493,8 @@
         suffix = getFillerText(faction, d.suffixIndex || d.suffixIdx, "suffix");
       }
 
-      if(!prefix && (text || "").trim()){
-        prefix = getFillerText(faction, 1, "prefix");
-      }
-      if(!suffix && (text || "").trim()){
-        suffix = getFillerText(faction, 1, "suffix");
-      }
+      if(!prefix && (text || "").trim()) prefix = getFillerText(faction, 1, "prefix");
+      if(!suffix && (text || "").trim()) suffix = getFillerText(faction, 1, "suffix");
 
       if((text || "").trim().length === 0){
         clearMessageKeepLayout();
