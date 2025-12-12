@@ -15,16 +15,25 @@
     --accent:#00ff66;
     --font: Calibri, Arial, sans-serif;
 
-    /* Bezpieczne marginesy tekstu (z zapasem, żeby nie nachodzić na ozdoby) */
+    /* Bezpieczne marginesy tekstu */
     --screen-top: 14%;
     --screen-right: 14%;
     --screen-bottom: 22%;
     --screen-left: 18%;
 
-    /* Efekt "transmission" */
-    --tx-bright-peak: 3.00; /* szczyt jasności (puls) */
-    --tx-jitter: 15px;      /* amplituda drgań */
-    --tx-duration: 3s;      /* czas pulsu */
+    /* Domyślne rozmiary (można nadpisać z GM) */
+    --msg-font-size: clamp(18px, 3.4vw, 32px);
+    --prefix-font-size: clamp(12px, 2.0vw, 16px);
+    --suffix-font-size: clamp(12px, 2.0vw, 16px);
+
+    /* Domyślne kolory prefix/suffix (można nadpisać z GM) */
+    --prefix-color: rgba(255,255,255,.88);
+    --suffix-color: rgba(255,255,255,.86);
+
+    /* Efekt "transmission" (pozostawiony w kodzie, ale obecnie wyłączony w JS) */
+    --tx-bright-peak: 3.00;
+    --tx-jitter: 15px;
+    --tx-duration: 3s;
   }
 
   *{box-sizing:border-box}
@@ -95,7 +104,7 @@
     97%{opacity:.60}
   }
 
-  /* Bezpieczne pole na tekst – scroll tylko tutaj */
+  /* Pole na tekst */
   .screen{
     position:absolute;
     top:var(--screen-top);
@@ -106,14 +115,15 @@
     overflow:auto;
     -webkit-overflow-scrolling:touch;
     padding: clamp(14px, 2.4vw, 24px);
-
-    /* screen zawsze istnieje; "czyszczenie" usuwa treść, nie UI */
     display:block;
 
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
-  /* ====== TRANSMISSION EFFECT (puls + jitter) ====== */
+  /* ====== TRANSMISSION EFFECT (puls + jitter) ======
+     UWAGA: pozostawione w kodzie, ale obecnie NIEURUCHAMIANE.
+     (Wyłączone w JS – patrz komentarz przy triggerTransmissionEffect()).
+  */
   @keyframes txPulse {
     0%   { filter: brightness(1.00); opacity: 1; }
     10%  { filter: brightness(var(--tx-bright-peak)); opacity: 1; }
@@ -144,7 +154,7 @@
   .tx-on .msg,
   .tx-on .prefixRow,
   .tx-on .suffixRow{
-    animation: txJitter .6s linear 5; /* 5*0.6s ~ 3s */
+    animation: txJitter .6s linear 5;
   }
 
   /* Prefix + logo po PRAWEJ */
@@ -157,8 +167,8 @@
 
   .prefix{
     flex: 1 1 auto;
-    color: rgba(255,255,255,.88);
-    font-size: clamp(12px, 2.0vw, 16px);
+    color: var(--prefix-color);
+    font-size: var(--prefix-font-size);
     letter-spacing: 1.5px;
     margin: 0 0 10px 0;
     white-space: pre-wrap;
@@ -182,12 +192,12 @@
     filter: drop-shadow(0 2px 6px rgba(0,0,0,.7));
     pointer-events:none;
     user-select:none;
-    display:none; /* pokażemy tylko dla wybranych frakcji */
+    display:none;
   }
 
   .msg{
     position:relative;
-    font-size: clamp(18px, 3.4vw, 32px);
+    font-size: var(--msg-font-size);
     line-height: 1.35;
     white-space: pre-wrap;
     word-break: break-word;
@@ -201,8 +211,8 @@
   }
 
   .suffix{
-    color: rgba(255,255,255,.86);
-    font-size: clamp(12px, 2.0vw, 16px);
+    color: var(--suffix-color);
+    font-size: var(--suffix-font-size);
     letter-spacing: 1.5px;
     margin: 12px 0 0 0;
     white-space: pre-wrap;
@@ -233,25 +243,6 @@
   .unlock .title{font-size:18px; margin-bottom:8px;}
   .unlock .hint{font-size:13px; opacity:.78; line-height:1.35;}
   .unlock .tiny{margin-top:10px; font-size:12px; opacity:.6;}
-
-  /* Debug overlay */
-  #debug{
-    position:fixed;
-    left:8px; bottom:8px;
-    font-family: Consolas, "Courier New", monospace;
-    font-size:11px;
-    color:rgba(255,255,255,.85);
-    background:rgba(0,0,0,.55);
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:12px;
-    padding:10px;
-    max-width:min(92vw,640px);
-    white-space:pre-wrap;
-    z-index:10000;
-    display:none;
-    max-height: 40vh;
-    overflow:auto;
-  }
 </style>
 </head>
 
@@ -287,8 +278,6 @@
     </div>
   </div>
 
-  <div id="debug"></div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
@@ -305,9 +294,6 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  // Cache-busting do zasobów na GitHub Pages.
-  // Jeśli w przyszłości podmienisz pliki graficzne lub audio, zmień tę wartość,
-  // żeby tablet na pewno pobrał nowe wersje (omija cache przeglądarki).
   const ASSET_VERSION = "2025-12-13-1";
 
   const DEFAULT_PING_URL = `assets/audio/global/Ping.mp3?v=${ASSET_VERSION}`;
@@ -345,8 +331,6 @@
     chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
   };
 
-  // Fillery (prefix/suffix) — używane gdy GM nie wyśle gotowego prefix/suffix,
-  // tylko np. prefixIndex / suffixIndex.
   const FILLERS = {
     mechanicus: {
       prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
@@ -355,18 +339,9 @@
     inquisition: {
       prefixes:["++ INQUISITORIAL NOTICE ++","++ DATA INTERCEPTED ++","++ DECRYPTING ORDER ++","++ ORDER: SIGMA-9 ++","++ COGITATOR ACCESS ++","++ BY HIS WILL ++","++ CLASSIFIED MATERIAL ++","++ MIND CLEANSED ++","++ CODEX SECURED ++"],
       suffixes:["++ THE EMPEROR PROTECTS ++","++ AUTHORIZATION VERIFIED ++","++ PURGE COMPLETE ++","++ FAITH REMAINS ++","++ THOUGHT FOR THE DAY ++","++ HERESY PURGED ++","++ OATH UPHELD ++","++ FAITH IS ARMOR ++","++ EXAMINATION COMPLETE ++"]
-    },
-    militarum: {
-      prefixes:["++ IMPERIAL SIGNAL ++","++ HIGH COMMAND ORDER ++","++ ORDERS INCOMING ++","++ TACTICAL FEED ++","++ REGIMENTAL DATA ++","++ COMMAND OVERRIDE ++","++ BATTLELINE UPLINK ++","++ ENGAGEMENT ACTIVE ++","++ OPERATIONAL BRIEF ++"],
-      suffixes:["++ GLORY TO THE GUARD ++","++ VICTORY IS ASSURED ++","++ CADIA STANDS ++","++ DUTY FULFILLED ++","++ NO SACRIFICE TOO GREAT ++","++ PERIMETER SECURED ++","++ FOR THE EMPEROR ++","++ STATUS: GREEN ++","++ STRATEGIC DIRECTIVE ++"]
-    },
-    chaos_undivided: {
-      prefixes:["++ WARP STIRRING ++","++ TRANSMISSION CORRUPTED ++","++ HERESY INBOUND ++","++ WARP SIGNATURE FOUND ++","++ SACRIFICE ACCEPTED ++","++ WARP ENERGY RISING ++","++ ORDER BREAKS ++","++ FLESH TURNS ++","++ ASCENSION IMMINENT ++"],
-      suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"]
     }
   };
 
-  // Logo: tylko 2 frakcje (Twoje ścieżki) — reszta pusta.
   const FACTION_LOGO = {
     inquisition: `assets/logos/inquisition/Inquisition.png?v=${ASSET_VERSION}`,
     mechanicus:  `assets/logos/mechanicus/Mechanicus.png?v=${ASSET_VERSION}`
@@ -381,73 +356,23 @@
     suffixLine: document.getElementById("suffixLine"),
     msg: document.getElementById("msg"),
     logo: document.getElementById("logo"),
-    debug: document.getElementById("debug"),
   };
-
-  const debugOn = new URLSearchParams(location.search).get("debug") === "1";
-  function dbg(s){
-    console.log("[Infoczytnik]", s);
-    if(!debugOn) return;
-    el.debug.style.display = "block";
-    el.debug.textContent = (el.debug.textContent + "\n" + s).trim();
-    el.debug.scrollTop = el.debug.scrollHeight;
-  }
-
-  /* ============================================================
-     FUNKCJA (WYŁĄCZONA CELOWO): automatyczne "tuningowanie" efektu
-     różnie dla laptopa i tabletu.
-
-     CO TO ROBIŁO?
-     - Na mniejszych ekranach (typowo tablet) zwiększało brightness i jitter,
-       bo animacje z filter:brightness() oraz przesunięcia w "CSS px" mogą
-       wyglądać słabiej (DPR, inne renderowanie fontu/GPU).
-     - Na większych ekranach (laptop) zostawiało wartości domyślne.
-
-     DLACZEGO WYŁĄCZONE?
-     - Użytkownik nie chce różnicować efektu między urządzeniami.
-     - Ten kod pozostawiamy jako komentarz do dokumentacji i ewentualnego
-       powrotu w przyszłości.
-
-     (Jeśli kiedyś wrócimy do tematu ujednolicania – odkomentujemy i dostroimy.)
-  ============================================================ */
-  /*
-  (function tuneEffectByScreen(){
-    const minSide = Math.min(window.innerWidth, window.innerHeight);
-    if(minSide <= 900){
-      document.documentElement.style.setProperty("--tx-bright-peak", "3.20");
-      document.documentElement.style.setProperty("--tx-jitter", "18px");
-      document.documentElement.style.setProperty("--tx-duration", "3s");
-      dbg("effect tuned for small screen (tablet boost)");
-    }else{
-      document.documentElement.style.setProperty("--tx-bright-peak", "3.00");
-      document.documentElement.style.setProperty("--tx-jitter", "15px");
-      document.documentElement.style.setProperty("--tx-duration", "3s");
-      dbg("effect tuned for large screen (default)");
-    }
-  })();
-  */
 
   let audioArmed = false;
   function armAudio(){
     if(audioArmed) return;
     audioArmed = true;
     el.unlock.style.display = "none";
-    dbg("AUDIO ARMED");
   }
   el.unlock.addEventListener("click", armAudio);
   window.addEventListener("keydown", armAudio);
 
-  async function playUrlOnce(url, kind){
-    dbg(`play(${kind}): ${url}`);
-    if(!audioArmed){ dbg("BLOCKED: audio not armed"); return; }
+  async function playUrlOnce(url){
+    if(!audioArmed) return;
     try{
       const a = new Audio(url);
-      a.addEventListener("error", () => dbg(`Audio element error (${kind})`));
       await a.play();
-      dbg(`OK: playing (${kind})`);
-    }catch(e){
-      dbg(`ERROR play(${kind}): ${e?.message || e}`);
-    }
+    }catch(e){ /* cisza */ }
   }
 
   function fitPanel(ar){
@@ -514,14 +439,17 @@
     setLogoForFaction(key);
   }
 
-  // TRANSMISSION EFFECT
-  let txTimer = null;
+  // ====== TRANSMISSION EFFECT (WYŁĄCZONE) ======
+  // Ta funkcja dodaje klasę "tx-on" na .screen, uruchamiając animacje:
+  // - puls jasności (txPulse)
+  // - drganie tekstu (txJitter)
+  // Celowo NIE wywołujemy jej teraz, bo efekt różnił się wizualnie na laptopie i tablecie.
+  // W przyszłości można wrócić: odkomentować wywołania w "ping" i "message".
   function triggerTransmissionEffect(){
     el.screen.classList.remove("tx-on");
-    void el.screen.offsetWidth; // reflow
+    void el.screen.offsetWidth;
     el.screen.classList.add("tx-on");
-    if(txTimer) clearTimeout(txTimer);
-    txTimer = setTimeout(()=> el.screen.classList.remove("tx-on"), 3000);
+    setTimeout(()=> el.screen.classList.remove("tx-on"), 3000);
   }
 
   function showMessage(prefix, text, suffix){
@@ -529,7 +457,8 @@
     el.msg.textContent = text || "";
     el.suffixLine.textContent = suffix || "";
     el.screen.scrollTop = 0;
-    triggerTransmissionEffect();
+
+    // triggerTransmissionEffect(); // <-- CELOWO WYŁĄCZONE (patrz komentarz wyżej)
   }
 
   function clearMessageKeepLayout(){
@@ -538,19 +467,27 @@
     el.suffixLine.textContent = "";
   }
 
+  function applyTextStyleFromDoc(d){
+    // Te pola będzie wysyłał GM (opcjonalnie)
+    // msgFontSize / prefixFontSize / suffixFontSize: np. "28px", "18px", "1.2rem"
+    // prefixColor / suffixColor: np. "#ffffff", "rgba(255,255,255,0.8)"
+    if(d.msgFontSize)    document.documentElement.style.setProperty("--msg-font-size", String(d.msgFontSize));
+    if(d.prefixFontSize) document.documentElement.style.setProperty("--prefix-font-size", String(d.prefixFontSize));
+    if(d.suffixFontSize) document.documentElement.style.setProperty("--suffix-font-size", String(d.suffixFontSize));
+
+    if(d.prefixColor) document.documentElement.style.setProperty("--prefix-color", String(d.prefixColor));
+    if(d.suffixColor) document.documentElement.style.setProperty("--suffix-color", String(d.suffixColor));
+  }
+
   window.addEventListener("resize", () => fitPanel(currentAr));
 
-  const currentRef = doc(getFirestore(app), "dataslate", "current");
+  const currentRef = doc(db, "dataslate", "current");
   let lastNonce = null;
 
   onSnapshot(currentRef, (snap)=>{
-    if(!snap.exists()){
-      dbg("current doc missing");
-      return;
-    }
-    const d = snap.data() || {};
-    dbg(`current: type=${d.type} faction=${d.faction} nonce=${d.nonce}`);
+    if(!snap.exists()) return;
 
+    const d = snap.data() || {};
     if(d.nonce && d.nonce === lastNonce) return;
     lastNonce = d.nonce || null;
 
@@ -558,6 +495,7 @@
     const color   = d.color || d.fontColor || "#00ff66";
 
     applyLayout(faction, color);
+    applyTextStyleFromDoc(d);
 
     if(d.type === "clear"){
       clearMessageKeepLayout();
@@ -565,22 +503,18 @@
     }
 
     if(d.type === "ping"){
-      triggerTransmissionEffect();
-      const pingUrl = (d.pingUrl ? `${d.pingUrl}` : DEFAULT_PING_URL);
-      playUrlOnce(pingUrl, "ping");
+      // triggerTransmissionEffect(); // <-- CELOWO WYŁĄCZONE
+      const pingUrl = d.pingUrl ? String(d.pingUrl) : DEFAULT_PING_URL;
+      playUrlOnce(pingUrl);
       return;
     }
 
     if(d.type === "message"){
-      // Obsługa różnych wersji GM:
-      // - jeśli GM wysyła gotowe prefix/suffix: używamy ich
-      // - jeśli GM wysyła prefixIndex/suffixIndex: budujemy z FILLERS
       const text = d.text ?? "";
 
       let prefix = d.prefix ?? d.prefixText ?? "";
       let suffix = d.suffix ?? d.suffixText ?? "";
 
-      // jeśli brak tekstu prefix/suffix, spróbuj z indeksów
       if(!prefix && (d.prefixIndex || d.prefixIdx)){
         prefix = getFillerText(faction, d.prefixIndex || d.prefixIdx, "prefix");
       }
@@ -588,7 +522,6 @@
         suffix = getFillerText(faction, d.suffixIndex || d.suffixIdx, "suffix");
       }
 
-      // jeśli nadal puste (brak indeksów), a tekst istnieje, daj minimalne sensowne domyślne:
       if(!prefix && (text || "").trim()){
         prefix = getFillerText(faction, 1, "prefix");
       }
@@ -602,17 +535,13 @@
         showMessage(prefix, text, suffix);
       }
 
-      const msgUrl = (d.msgUrl || d.messageUrl) ? `${(d.msgUrl || d.messageUrl)}` : DEFAULT_MSG_URL;
-      playUrlOnce(msgUrl, "message");
-      return;
+      const msgUrl = (d.msgUrl || d.messageUrl) ? String(d.msgUrl || d.messageUrl) : DEFAULT_MSG_URL;
+      playUrlOnce(msgUrl);
     }
-  }, (err)=>{
-    dbg("ERROR snapshot: " + (err?.message || err));
   });
 
   // Start
   applyLayout("mechanicus", "#00ff66");
-  dbg("ready");
 </script>
 </body>
 </html>
