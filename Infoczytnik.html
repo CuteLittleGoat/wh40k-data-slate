@@ -21,8 +21,8 @@
     --screen-bottom: 22%;
     --screen-left: 18%;
 
-    /* Sterowanie efektem (łatwo potem stroić) */
-    --tx-bright-peak: 3.00; /* jasność szczytowa */
+    /* Efekt "transmission" */
+    --tx-bright-peak: 3.00; /* szczyt jasności (puls) */
     --tx-jitter: 15px;      /* amplituda drgań */
     --tx-duration: 3s;      /* czas pulsu */
   }
@@ -107,14 +107,13 @@
     -webkit-overflow-scrolling:touch;
     padding: clamp(14px, 2.4vw, 24px);
 
-    /* WAŻNE: screen nie znika, żeby prefix/suffix/logo nie „ginęły” */
+    /* screen zawsze istnieje; "czyszczenie" usuwa treść, nie UI */
     display:block;
 
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
   /* ====== TRANSMISSION EFFECT (puls + jitter) ====== */
-
   @keyframes txPulse {
     0%   { filter: brightness(1.00); opacity: 1; }
     10%  { filter: brightness(var(--tx-bright-peak)); opacity: 1; }
@@ -125,7 +124,6 @@
     100% { filter: brightness(1.00); opacity: 1; }
   }
 
-  /* Drganie z użyciem zmiennej --tx-jitter */
   @keyframes txJitter {
     0%   { transform: translate(0,0); }
     10%  { transform: translate(calc(var(--tx-jitter) * 0.55), calc(var(--tx-jitter) * -0.40)); }
@@ -140,19 +138,16 @@
     100% { transform: translate(0,0); }
   }
 
-  /* Efekt włączamy klasą .tx-on na .screen */
   .tx-on{
     animation: txPulse var(--tx-duration) ease-out 1;
   }
-
-  /* Drganie tylko dla tekstu (żeby scroll całego boxa nie skakał) */
   .tx-on .msg,
   .tx-on .prefixRow,
   .tx-on .suffixRow{
-    animation: txJitter .6s linear 5; /* 5*0.6s ≈ 3s */
+    animation: txJitter .6s linear 5; /* 5*0.6s ~ 3s */
   }
 
-  /* Układ prefix + logo po PRAWEJ */
+  /* Prefix + logo po PRAWEJ */
   .prefixRow{
     display:flex;
     align-items:flex-start;
@@ -169,12 +164,11 @@
     white-space: pre-wrap;
   }
 
-  /* Stałe pole na logo (proporcje zachowane) */
   .logoBox{
     flex: 0 0 auto;
     width: 54px;
     height: 54px;
-    display:flex;           /* zawsze istnieje */
+    display:flex;
     align-items:center;
     justify-content:center;
   }
@@ -188,7 +182,7 @@
     filter: drop-shadow(0 2px 6px rgba(0,0,0,.7));
     pointer-events:none;
     user-select:none;
-    display:none;           /* pokażemy tylko dla 2 frakcji */
+    display:none; /* pokażemy tylko dla wybranych frakcji */
   }
 
   .msg{
@@ -279,7 +273,7 @@
       <div class="screen" id="screen">
         <div class="prefixRow">
           <div class="prefix" id="prefixLine"></div>
-          <div class="logoBox" id="logoBox">
+          <div class="logoBox">
             <img class="logo" id="logo" alt="logo" />
           </div>
         </div>
@@ -311,18 +305,23 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  const DEFAULT_PING_URL = "assets/audio/global/Ping.mp3";
-  const DEFAULT_MSG_URL  = "assets/audio/global/Message.mp3";
+  // Cache-busting do zasobów na GitHub Pages.
+  // Jeśli w przyszłości podmienisz pliki graficzne lub audio, zmień tę wartość,
+  // żeby tablet na pewno pobrał nowe wersje (omija cache przeglądarki).
+  const ASSET_VERSION = "2025-12-13-1";
+
+  const DEFAULT_PING_URL = `assets/audio/global/Ping.mp3?v=${ASSET_VERSION}`;
+  const DEFAULT_MSG_URL  = `assets/audio/global/Message.mp3?v=${ASSET_VERSION}`;
 
   const LAYOUT_BG = {
-    inquisition: "assets/layouts/inquisition/DataSlate_Inq.png",
-    mechanicus:  "assets/layouts/mechanicus/DataSlate_04.png",
-    militarum:   "assets/layouts/militarum/DataSlate_04.png",
-    chaos_undivided: "assets/layouts/chaos_undivided/DataSlate_04.png",
-    khorne:      "assets/layouts/khorne/DataSlate_04.png",
-    nurgle:      "assets/layouts/nurgle/DataSlate_04.png",
-    tzeentch:    "assets/layouts/tzeentch/DataSlate_04.png",
-    slaanesh:    "assets/layouts/slaanesh/DataSlate_04.png",
+    inquisition: `assets/layouts/inquisition/DataSlate_Inq.png?v=${ASSET_VERSION}`,
+    mechanicus:  `assets/layouts/mechanicus/DataSlate_04.png?v=${ASSET_VERSION}`,
+    militarum:   `assets/layouts/militarum/DataSlate_04.png?v=${ASSET_VERSION}`,
+    chaos_undivided: `assets/layouts/chaos_undivided/DataSlate_04.png?v=${ASSET_VERSION}`,
+    khorne:      `assets/layouts/khorne/DataSlate_04.png?v=${ASSET_VERSION}`,
+    nurgle:      `assets/layouts/nurgle/DataSlate_04.png?v=${ASSET_VERSION}`,
+    tzeentch:    `assets/layouts/tzeentch/DataSlate_04.png?v=${ASSET_VERSION}`,
+    slaanesh:    `assets/layouts/slaanesh/DataSlate_04.png?v=${ASSET_VERSION}`,
   };
 
   const LAYOUT_AR = {
@@ -346,10 +345,31 @@
     chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
   };
 
-  // LOGO: tylko 2 frakcje (Twoje ścieżki)
+  // Fillery (prefix/suffix) — używane gdy GM nie wyśle gotowego prefix/suffix,
+  // tylko np. prefixIndex / suffixIndex.
+  const FILLERS = {
+    mechanicus: {
+      prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
+      suffixes:["++ PRAISE THE OMNISSIAH ++","++ MACHINE SPIRIT CALMED ++","++ THE FLESH IS WEAK ++","++ SYSTEM CLEANSED ++","++ BINARY PRAYER SENT ++","++ OMNISSIAH GUIDE US ++","++ SERVITOR READY ++","++ RITUAL COMPLETE ++","++ PRAY TO THE CODE ++"]
+    },
+    inquisition: {
+      prefixes:["++ INQUISITORIAL NOTICE ++","++ DATA INTERCEPTED ++","++ DECRYPTING ORDER ++","++ ORDER: SIGMA-9 ++","++ COGITATOR ACCESS ++","++ BY HIS WILL ++","++ CLASSIFIED MATERIAL ++","++ MIND CLEANSED ++","++ CODEX SECURED ++"],
+      suffixes:["++ THE EMPEROR PROTECTS ++","++ AUTHORIZATION VERIFIED ++","++ PURGE COMPLETE ++","++ FAITH REMAINS ++","++ THOUGHT FOR THE DAY ++","++ HERESY PURGED ++","++ OATH UPHELD ++","++ FAITH IS ARMOR ++","++ EXAMINATION COMPLETE ++"]
+    },
+    militarum: {
+      prefixes:["++ IMPERIAL SIGNAL ++","++ HIGH COMMAND ORDER ++","++ ORDERS INCOMING ++","++ TACTICAL FEED ++","++ REGIMENTAL DATA ++","++ COMMAND OVERRIDE ++","++ BATTLELINE UPLINK ++","++ ENGAGEMENT ACTIVE ++","++ OPERATIONAL BRIEF ++"],
+      suffixes:["++ GLORY TO THE GUARD ++","++ VICTORY IS ASSURED ++","++ CADIA STANDS ++","++ DUTY FULFILLED ++","++ NO SACRIFICE TOO GREAT ++","++ PERIMETER SECURED ++","++ FOR THE EMPEROR ++","++ STATUS: GREEN ++","++ STRATEGIC DIRECTIVE ++"]
+    },
+    chaos_undivided: {
+      prefixes:["++ WARP STIRRING ++","++ TRANSMISSION CORRUPTED ++","++ HERESY INBOUND ++","++ WARP SIGNATURE FOUND ++","++ SACRIFICE ACCEPTED ++","++ WARP ENERGY RISING ++","++ ORDER BREAKS ++","++ FLESH TURNS ++","++ ASCENSION IMMINENT ++"],
+      suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"]
+    }
+  };
+
+  // Logo: tylko 2 frakcje (Twoje ścieżki) — reszta pusta.
   const FACTION_LOGO = {
-    inquisition: "assets/logos/inquisition/Inquisition.png",
-    mechanicus:  "assets/logos/mechanicus/Mechanicus.png"
+    inquisition: `assets/logos/inquisition/Inquisition.png?v=${ASSET_VERSION}`,
+    mechanicus:  `assets/logos/mechanicus/Mechanicus.png?v=${ASSET_VERSION}`
   };
 
   const el = {
@@ -360,7 +380,6 @@
     prefixLine: document.getElementById("prefixLine"),
     suffixLine: document.getElementById("suffixLine"),
     msg: document.getElementById("msg"),
-    logoBox: document.getElementById("logoBox"),
     logo: document.getElementById("logo"),
     debug: document.getElementById("debug"),
   };
@@ -374,8 +393,24 @@
     el.debug.scrollTop = el.debug.scrollHeight;
   }
 
-  // Minimalne ujednolicenie efektu na tabletach: jeśli ekran „mały”,
-  // dajemy lekki boost, bo na wielu tabletach filtr/jitter wygląda słabiej.
+  /* ============================================================
+     FUNKCJA (WYŁĄCZONA CELOWO): automatyczne "tuningowanie" efektu
+     różnie dla laptopa i tabletu.
+
+     CO TO ROBIŁO?
+     - Na mniejszych ekranach (typowo tablet) zwiększało brightness i jitter,
+       bo animacje z filter:brightness() oraz przesunięcia w "CSS px" mogą
+       wyglądać słabiej (DPR, inne renderowanie fontu/GPU).
+     - Na większych ekranach (laptop) zostawiało wartości domyślne.
+
+     DLACZEGO WYŁĄCZONE?
+     - Użytkownik nie chce różnicować efektu między urządzeniami.
+     - Ten kod pozostawiamy jako komentarz do dokumentacji i ewentualnego
+       powrotu w przyszłości.
+
+     (Jeśli kiedyś wrócimy do tematu ujednolicania – odkomentujemy i dostroimy.)
+  ============================================================ */
+  /*
   (function tuneEffectByScreen(){
     const minSide = Math.min(window.innerWidth, window.innerHeight);
     if(minSide <= 900){
@@ -390,6 +425,7 @@
       dbg("effect tuned for large screen (default)");
     }
   })();
+  */
 
   let audioArmed = false;
   function armAudio(){
@@ -450,6 +486,14 @@
     el.logo.style.display = "block";
   }
 
+  function getFillerText(key, idx1based, kind){
+    const cfg = FILLERS[key] || FILLERS.mechanicus;
+    const arr = (kind === "prefix") ? cfg.prefixes : cfg.suffixes;
+    const n = Number(idx1based);
+    const i = (Number.isFinite(n) ? Math.floor(n) : 1) - 1;
+    return arr[Math.max(0, Math.min(arr.length - 1, i))] || "";
+  }
+
   function applyLayout(factionKey, color){
     const key = (factionKey && LAYOUT_BG[factionKey]) ? factionKey : "mechanicus";
 
@@ -492,12 +536,11 @@
     el.prefixLine.textContent = "";
     el.msg.textContent = "";
     el.suffixLine.textContent = "";
-    // screen zostaje, żeby wyglądało jak czyste pole na danych
   }
 
   window.addEventListener("resize", () => fitPanel(currentAr));
 
-  const currentRef = doc(db, "dataslate", "current");
+  const currentRef = doc(getFirestore(app), "dataslate", "current");
   let lastNonce = null;
 
   onSnapshot(currentRef, (snap)=>{
@@ -523,15 +566,35 @@
 
     if(d.type === "ping"){
       triggerTransmissionEffect();
-      const pingUrl = d.pingUrl || DEFAULT_PING_URL;
+      const pingUrl = (d.pingUrl ? `${d.pingUrl}` : DEFAULT_PING_URL);
       playUrlOnce(pingUrl, "ping");
       return;
     }
 
     if(d.type === "message"){
-      const prefix = d.prefix ?? "";
-      const text   = d.text ?? "";
-      const suffix = d.suffix ?? "";
+      // Obsługa różnych wersji GM:
+      // - jeśli GM wysyła gotowe prefix/suffix: używamy ich
+      // - jeśli GM wysyła prefixIndex/suffixIndex: budujemy z FILLERS
+      const text = d.text ?? "";
+
+      let prefix = d.prefix ?? d.prefixText ?? "";
+      let suffix = d.suffix ?? d.suffixText ?? "";
+
+      // jeśli brak tekstu prefix/suffix, spróbuj z indeksów
+      if(!prefix && (d.prefixIndex || d.prefixIdx)){
+        prefix = getFillerText(faction, d.prefixIndex || d.prefixIdx, "prefix");
+      }
+      if(!suffix && (d.suffixIndex || d.suffixIdx)){
+        suffix = getFillerText(faction, d.suffixIndex || d.suffixIdx, "suffix");
+      }
+
+      // jeśli nadal puste (brak indeksów), a tekst istnieje, daj minimalne sensowne domyślne:
+      if(!prefix && (text || "").trim()){
+        prefix = getFillerText(faction, 1, "prefix");
+      }
+      if(!suffix && (text || "").trim()){
+        suffix = getFillerText(faction, 1, "suffix");
+      }
 
       if((text || "").trim().length === 0){
         clearMessageKeepLayout();
@@ -539,7 +602,7 @@
         showMessage(prefix, text, suffix);
       }
 
-      const msgUrl = d.msgUrl || d.messageUrl || DEFAULT_MSG_URL;
+      const msgUrl = (d.msgUrl || d.messageUrl) ? `${(d.msgUrl || d.messageUrl)}` : DEFAULT_MSG_URL;
       playUrlOnce(msgUrl, "message");
       return;
     }
@@ -547,7 +610,7 @@
     dbg("ERROR snapshot: " + (err?.message || err));
   });
 
-  // Start (layout domyślny)
+  // Start
   applyLayout("mechanicus", "#00ff66");
   dbg("ready");
 </script>
