@@ -5,25 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>WH40k Data-Slate — Infoczytnik</title>
 
-<!-- ✅ AUTO-CACHE-BUSTING (dla tabletów które uparcie trzymają starą wersję)
-     Jeśli strona została otwarta bez parametru ?v=..., przekieruj na tę samą stronę z wersją.
-     Dzięki temu gracze mogą ustawić jako stronę startową "Infoczytnik.html" bez dopisków,
-     a Ty zmieniasz tylko stałą INF_VERSION przy kolejnych aktualizacjach. -->
+<!-- ✅ AUTO-CACHE-BUSTING (żeby tablet nie trzymał starej wersji) -->
 <script>
   (function autoCacheBust(){
-    const INF_VERSION = "2025-12-13-2"; // <-- zwiększaj przy każdej aktualizacji Infoczytnika
+    const INF_VERSION = "2025-12-13-2"; // <- zmieniaj przy aktualizacjach
     const url = new URL(window.location.href);
-
-    // jeśli nie ma parametru v albo jest inny -> przekieruj
     if (url.searchParams.get("v") !== INF_VERSION) {
       url.searchParams.set("v", INF_VERSION);
-
-      // replace() żeby nie zaśmiecać historii "wstecz"
       window.location.replace(url.toString());
     }
   })();
 </script>
 
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
@@ -239,10 +233,43 @@
     </div>
   </div>
 
+  <!-- ✅ config jako zwykły skrypt (ustawia window.firebaseConfig) -->
+  <script src="config/firebase-config.js"></script>
+
+  <!-- ✅ Audio unlock działa NIEZALEŻNIE od Firebase (ważne!) -->
+  <script>
+    (function setupAudioUnlock(){
+      const unlock = document.getElementById("unlock");
+      window.__dsAudioArmed = false;
+
+      function armAudio(){
+        if (window.__dsAudioArmed) return;
+        window.__dsAudioArmed = true;
+        unlock.style.display = "none";
+      }
+
+      // możliwie najpewniejsze wejścia na mobile
+      unlock.addEventListener("click", armAudio, { passive:true });
+      unlock.addEventListener("touchstart", armAudio, { passive:true });
+      window.addEventListener("pointerdown", armAudio, { passive:true });
+      window.addEventListener("keydown", armAudio);
+
+      window.__dsPlayUrlOnce = async function(url){
+        if(!window.__dsAudioArmed) return;
+        try { await new Audio(url).play(); } catch(e) {}
+      };
+    })();
+  </script>
+
 <script type="module">
-  import { firebaseConfig } from "./config/firebase-config.js";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  const firebaseConfig = window.firebaseConfig;
+  if(!firebaseConfig){
+    console.error("Brak window.firebaseConfig — sprawdź config/firebase-config.js");
+    // Nie blokujemy UI — tylko wyświetli się layout bez aktualizacji.
+  }
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
@@ -297,7 +324,6 @@
   };
 
   const el = {
-    unlock: document.getElementById("unlock"),
     panel: document.getElementById("panel"),
     layoutImg: document.getElementById("layoutImg"),
     screen: document.getElementById("screen"),
@@ -306,26 +332,6 @@
     msg: document.getElementById("msg"),
     logo: document.getElementById("logo"),
   };
-
-  let audioArmed = false;
-  function armAudio(){
-    if(audioArmed) return;
-    audioArmed = true;
-    el.unlock.style.display = "none";
-  }
-
-  // click/tap
-  el.unlock.addEventListener("click", armAudio, { passive:true });
-
-  // dodatkowe “awaryjne” wejścia (czasem mobile blokuje click gdy element ma overlay)
-  el.unlock.addEventListener("touchstart", armAudio, { passive:true });
-  window.addEventListener("pointerdown", (e)=>{ if(!audioArmed) armAudio(); }, { passive:true });
-  window.addEventListener("keydown", armAudio);
-
-  async function playUrlOnce(url){
-    if(!audioArmed) return;
-    try{ await new Audio(url).play(); }catch(e){}
-  }
 
   function fitPanel(ar){
     const vw = window.innerWidth, vh = window.innerHeight;
@@ -427,7 +433,7 @@
 
     if(d.type === "ping"){
       const pingUrl = d.pingUrl ? String(d.pingUrl) : DEFAULT_PING_URL;
-      playUrlOnce(pingUrl);
+      window.__dsPlayUrlOnce(pingUrl);
       return;
     }
 
@@ -454,10 +460,11 @@
       }
 
       const msgUrl = (d.msgUrl || d.messageUrl) ? String(d.msgUrl || d.messageUrl) : DEFAULT_MSG_URL;
-      playUrlOnce(msgUrl);
+      window.__dsPlayUrlOnce(msgUrl);
     }
   });
 
+  // Start
   applyLayout("mechanicus", "#00ff66");
 </script>
 </body>
