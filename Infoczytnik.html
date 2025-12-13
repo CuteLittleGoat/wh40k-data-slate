@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>WH40k Data-Slate — Infoczytnik</title>
 
-<!-- Google Fonts (fallback do Calibri/Arial jeśli brak internetu) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
@@ -15,18 +14,15 @@
     --accent:#00ff66;
     --font: Calibri, Arial, sans-serif;
 
-    /* Bezpieczne marginesy tekstu */
     --screen-top: 14%;
     --screen-right: 14%;
     --screen-bottom: 22%;
     --screen-left: 18%;
 
-    /* Domyślne rozmiary (można nadpisać z GM) */
     --msg-font-size: clamp(18px, 3.4vw, 32px);
     --prefix-font-size: clamp(12px, 2.0vw, 16px);
     --suffix-font-size: clamp(12px, 2.0vw, 16px);
 
-    /* Domyślne kolory prefix/suffix (można nadpisać z GM) */
     --prefix-color: rgba(255,255,255,.88);
     --suffix-color: rgba(255,255,255,.86);
   }
@@ -62,7 +58,6 @@
     pointer-events:none;
   }
 
-  /* CRT / Scanlines overlay (to NIE jest drganie tekstu) */
   .crt::before{
     content:"";
     position:absolute;
@@ -110,7 +105,6 @@
     -webkit-overflow-scrolling:touch;
     padding: clamp(14px, 2.4vw, 24px);
     display:block;
-
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
   }
 
@@ -170,7 +164,6 @@
     white-space: pre-wrap;
   }
 
-  /* Audio unlock overlay */
   .unlock{
     position:fixed;
     inset:0;
@@ -228,17 +221,9 @@
   </div>
 
 <script type="module">
+  import { firebaseConfig } from "./config/firebase-config.js";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
   import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
-    authDomain: "wh40k-data-slate.firebaseapp.com",
-    projectId: "wh40k-data-slate",
-    storageBucket: "wh40k-data-slate.firebasestorage.app",
-    messagingSenderId: "382792444120",
-    appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
-  };
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
@@ -314,7 +299,7 @@
 
   async function playUrlOnce(url){
     if(!audioArmed) return;
-    try{ await new Audio(url).play(); } catch(e){}
+    try{ await new Audio(url).play(); }catch(e){}
   }
 
   function fitPanel(ar){
@@ -448,7 +433,6 @@
     }
   });
 
-  // Start
   applyLayout("mechanicus", "#00ff66");
 </script>
 </body>
