@@ -36,9 +36,13 @@
     .chip{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);cursor:pointer;user-select:none;font-size:13px;color:#eaeaea;}
     .chip span{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.25)}
 
-    /* Losowość fillerów — Prefix po lewej, Suffix po prawej, pod Prefix */
-    .fillerBox{padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0f0f0f;}
-    .fillerTop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    /* ===== Układ: Losowość fillerów (Suffix wyrównany pod Prefix po prawej) ===== */
+    .fillerBox{
+      padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0f0f0f;
+    }
+    .fillerTop{
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
     .fillerTop input[type="checkbox"]{width:18px;height:18px;margin:0}
     .fillerManual{
       margin-top:10px;
@@ -47,10 +51,27 @@
       gap:12px;
       align-items:end;
     }
-    .miniLabel{color:#777;font-size:12px;margin-bottom:6px;display:block;}
-    .pairRow{display:flex;gap:10px;align-items:center;justify-content:flex-end;}
+    .fillerManual .right{
+      justify-self:end;
+      width:min(260px, 100%);
+    }
+    .fillerManual .left{
+      width:min(260px, 100%);
+    }
+    .miniLabel{
+      color:#777;
+      font-size:12px;
+      margin-bottom:6px;
+      display:block;
+    }
+    .pairRow{
+      display:flex;gap:10px;align-items:center;justify-content:flex-end;
+    }
     .pairRow b{color:#bdbdbd;font-weight:600}
     .pairRow input[type="number"]{width:110px}
+
+    hr.sep{border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0;}
+    code{font-family:Consolas,"Courier New",monospace;font-size:12px;color:#ddd}
   </style>
 </head>
 <body>
@@ -59,6 +80,7 @@
     <div class="card">
 
       <div class="row">
+        <!-- LEWA KOLUMNA -->
         <div class="col">
           <label>Frakcja / layout</label>
           <select id="faction">
@@ -72,20 +94,23 @@
             <option value="chaos_undivided">Chaos Undivided</option>
           </select>
 
+          <!-- Kolor treści + szybkie -->
           <label>Kolor fontu (treść wiadomości)</label>
           <input type="color" id="fontColor" value="#00ff66" />
-          <div class="chips">
+          <div class="chips" id="msgColorChips">
             <div class="chip" data-target="msg" data-color="#00ff66"><span style="background:#00ff66"></span>Zielony</div>
             <div class="chip" data-target="msg" data-color="#ff3333"><span style="background:#ff3333"></span>Czerwony</div>
             <div class="chip" data-target="msg" data-color="#d4af37"><span style="background:#d4af37"></span>Złoty</div>
             <div class="chip" data-target="msg" data-color="#ffffff"><span style="background:#ffffff"></span>Biały</div>
           </div>
 
+          <!-- Rozmiar treści -->
           <label>Wielkość fontu (treść wiadomości) — px</label>
           <input type="number" id="msgFontSize" min="12" max="80" step="1" value="28" />
 
-          <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0;">
+          <hr class="sep">
 
+          <!-- Kolor Prefix+Suffix -->
           <label>Kolor Prefix + Suffix (wspólny)</label>
           <div class="row" style="gap:10px;">
             <div class="col" style="min-width:180px;">
@@ -98,19 +123,27 @@
             </div>
           </div>
 
-          <div class="chips">
+          <!-- Szybkie kolory Prefix/Suffix -->
+          <div class="chips" id="psColorChips">
             <div class="chip" data-target="ps" data-color="#00ff66"><span style="background:#00ff66"></span>Zielony</div>
             <div class="chip" data-target="ps" data-color="#ff3333"><span style="background:#ff3333"></span>Czerwony</div>
             <div class="chip" data-target="ps" data-color="#d4af37"><span style="background:#d4af37"></span>Złoty</div>
             <div class="chip" data-target="ps" data-color="#ffffff"><span style="background:#ffffff"></span>Biały</div>
           </div>
 
+          <!-- Rozmiar Prefix/Suffix -->
           <label>Wielkość fontu Prefix + Suffix (wspólna) — px</label>
           <input type="number" id="psFontSize" min="10" max="60" step="1" value="14" />
+
+          <div class="small">
+            Logo ma stały rozmiar w Infoczytniku. Zmiana rozmiaru prefixu może spowodować zawijanie (OK), logo zostaje bez zmian.
+          </div>
         </div>
 
+        <!-- PRAWA KOLUMNA -->
         <div class="col">
           <label>Losowość fillerów</label>
+
           <div class="fillerBox">
             <div class="fillerTop">
               <input type="checkbox" id="randomFillers" checked />
@@ -118,7 +151,7 @@
             </div>
 
             <div class="fillerManual">
-              <div>
+              <div class="left">
                 <span class="miniLabel">Ręcznie</span>
                 <div class="pairRow">
                   <b>Prefix</b>
@@ -126,7 +159,7 @@
                 </div>
               </div>
 
-              <div>
+              <div class="right">
                 <div class="pairRow">
                   <b>Suffix</b>
                   <input type="number" id="suffixIndex" min="1" value="1" />
@@ -135,7 +168,9 @@
             </div>
           </div>
 
-          <div class="small">Gdy losowanie wyłączone, wybierasz osobno numer Prefix i Suffix (1..N zależnie od frakcji).</div>
+          <div class="small">
+            Gdy losowanie wyłączone, wybierasz osobno numer Prefix i Suffix (1..N zależnie od frakcji).
+          </div>
         </div>
       </div>
 
@@ -157,42 +192,57 @@
     </div>
   </div>
 
-  <script type="module">
-    // Firebase (moduły ES) + osobny plik config
-    import { firebaseConfig } from "./config/firebase-config.js";
+  <!-- ✅ Firebase config jako GLOBAL (window.firebaseConfig) -->
+  <script src="config/firebase-config.js"></script>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  <!-- Firebase compat (działa w zwykłym <script>) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore-compat.js"></script>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const currentRef = doc(db, "dataslate", "current");
+  <script>
+    // --- Konfiguracja Firebase z config/firebase-config.js ---
+    const firebaseConfig = window.firebaseConfig;
+    if(!firebaseConfig){
+      alert("Brak window.firebaseConfig. Sprawdź plik config/firebase-config.js");
+      throw new Error("Missing window.firebaseConfig");
+    }
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const currentRef = db.collection("dataslate").doc("current");
 
     const el = {
       faction: document.getElementById("faction"),
 
+      // treść wiadomości
       fontColor: document.getElementById("fontColor"),
       msgFontSize: document.getElementById("msgFontSize"),
 
+      // prefix/suffix styl
       psColorText: document.getElementById("psColorText"),
       psColorPicker: document.getElementById("psColorPicker"),
       psFontSize: document.getElementById("psFontSize"),
 
+      // fillery
       randomFillers: document.getElementById("randomFillers"),
       prefixIndex: document.getElementById("prefixIndex"),
       suffixIndex: document.getElementById("suffixIndex"),
 
+      // message
       message: document.getElementById("message"),
 
+      // buttons
       sendBtn: document.getElementById("sendBtn"),
       clearBtn: document.getElementById("clearBtn"),
       clearTextBtn: document.getElementById("clearTextBtn"),
       pingBtn: document.getElementById("pingBtn"),
 
+      // ui
       status: document.getElementById("status"),
       prefixPreview: document.getElementById("prefixPreview"),
       suffixPreview: document.getElementById("suffixPreview"),
 
+      // chips
       chips: Array.from(document.querySelectorAll(".chip")),
     };
 
@@ -235,11 +285,14 @@
     function computePreview(){
       const cfg=getLayout();
       const pMax=cfg.prefixes.length, sMax=cfg.suffixes.length;
+
       const pIdx=el.randomFillers.checked ? rand1to(pMax) : clampIndex(el.prefixIndex.value, pMax);
       const sIdx=el.randomFillers.checked ? rand1to(sMax) : clampIndex(el.suffixIndex.value, sMax);
+
       el.prefixPreview.textContent = cfg.prefixes[pIdx-1] || "";
       el.suffixPreview.textContent = cfg.suffixes[sIdx-1] || "";
 
+      // blokuj ręczne pola gdy losuje
       const manualDisabled = el.randomFillers.checked;
       el.prefixIndex.disabled = manualDisabled;
       el.suffixIndex.disabled = manualDisabled;
@@ -248,6 +301,7 @@
     async function sendMessage(isClear){
       const cfg=getLayout();
       const pMax=cfg.prefixes.length, sMax=cfg.suffixes.length;
+
       const prefixIndex=el.randomFillers.checked ? rand1to(pMax) : clampIndex(el.prefixIndex.value, pMax);
       const suffixIndex=el.randomFillers.checked ? rand1to(sMax) : clampIndex(el.suffixIndex.value, sMax);
 
@@ -256,26 +310,30 @@
 
       setStatus("wysyłam…");
       try{
-        await setDoc(currentRef, {
+        await currentRef.set({
           type: isClear ? "clear" : "message",
           faction: el.faction.value,
 
+          // treść wiadomości
           color: el.fontColor.value || "#00ff66",
           fontColor: el.fontColor.value || "#00ff66",
           msgFontSize: msgFontPx + "px",
 
+          // prefix/suffix styl
           prefixColor: getPrefixSuffixColor(),
           suffixColor: getPrefixSuffixColor(),
           prefixFontSize: psFontPx + "px",
           suffixFontSize: psFontPx + "px",
 
+          // fillery
           prefixIndex, suffixIndex,
 
+          // tekst
           text: isClear ? "" : (el.message.value || ""),
 
           nonce: nonce(),
-          ts: serverTimestamp()
-        });
+          ts: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge:false });
 
         setStatus(isClear ? "wyczyszczono" : "wysłano");
       }catch(e){
@@ -292,21 +350,21 @@
 
       setStatus("ping…");
       try{
-        await setDoc(currentRef, {
+        await currentRef.set({
           type:"ping",
           faction: el.faction.value,
 
+          // zostawiamy styl w docu, żeby nie “gubić” ustawień
           color: el.fontColor.value || "#00ff66",
           fontColor: el.fontColor.value || "#00ff66",
           msgFontSize: msgFontPx + "px",
-
           prefixColor: getPrefixSuffixColor(),
           suffixColor: getPrefixSuffixColor(),
           prefixFontSize: psFontPx + "px",
           suffixFontSize: psFontPx + "px",
 
           nonce: nonce(),
-          ts: serverTimestamp()
+          ts: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge:true });
 
         setStatus("ping wysłany");
@@ -317,6 +375,7 @@
       }
     }
 
+    // ====== EVENTY ======
     el.sendBtn.addEventListener("click", () => sendMessage(false));
     el.clearBtn.addEventListener("click", () => sendMessage(true));
     el.pingBtn.addEventListener("click", ping);
@@ -326,6 +385,7 @@
       el.message.focus();
     });
 
+    // chips (msg i ps)
     el.chips.forEach(ch => ch.addEventListener("click", () => {
       const target = ch.getAttribute("data-target");
       const c = ch.getAttribute("data-color");
@@ -336,11 +396,14 @@
       }else if(target === "ps"){
         el.psColorText.value = c;
         if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c)){
-          el.psColorPicker.value = c.length===4 ? ("#" + c[1]+c[1]+c[2]+c[2]+c[3]+c[3]) : c;
+          el.psColorPicker.value = (c.length===4)
+            ? ("#" + c[1]+c[1]+c[2]+c[2]+c[3]+c[3])
+            : c;
         }
       }
     }));
 
+    // picker prefix/suffix -> ustawia tekst na #RRGGBB
     el.psColorPicker.addEventListener("input", () => {
       el.psColorText.value = el.psColorPicker.value;
     });
