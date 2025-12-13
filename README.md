@@ -123,11 +123,14 @@ window.firebaseConfig = {
   messagingSenderId: "…",
   appId: "…"
 };
+```
 
 GM.html ładuje config jako zwykły <script> i korzysta z window.firebaseConfig.
 Infoczytnik.html też ładuje config jako <script> i korzysta z window.firebaseConfig.
 
-3.3 Kontrakt danych w Firestore (dataslate/current)
+---
+
+### 3.3 Kontrakt danych w Firestore (dataslate/current)
 
 Najważniejsze pola:
 
@@ -175,7 +178,9 @@ assets/audio/global/Ping.mp3
 
 assets/audio/global/Message.mp3
 
-3.4 GM.html — co robi kod
+---
+
+### 3.4 GM.html — co robi kod
 
 Trzyma listy fillerów dla frakcji w obiekcie LAYOUTS.
 
@@ -197,7 +202,9 @@ zapisuje type=ping,
 
 też wysyła style, żeby Infoczytnik nie „gubił” wyglądu.
 
-3.5 Infoczytnik.html — co robi kod
+---
+
+### 3.5 Infoczytnik.html — co robi kod
 
 Renderuje tło layoutu jako <img> z object-fit: contain.
 
@@ -224,7 +231,9 @@ ping → odtwarza dźwięk Ping
 
 message → składa prefix/suffix i wyświetla + odtwarza Message
 
-3.6 Dlaczego jest „Kliknij raz, aby odblokować dźwięk”
+---
+
+### 3.6 Dlaczego jest „Kliknij raz, aby odblokować dźwięk”
 
 Chrome i inne przeglądarki blokują autoplay audio, dopóki użytkownik nie wykona akcji.
 Infoczytnik ma overlay, który po kliknięciu:
@@ -235,8 +244,10 @@ uzbraja audio,
 
 od tego momentu można odtwarzać MP3.
 
-4) Zasoby i cache (ważne na tabletach)
-4.1 Struktura assets
+---
+
+## 4) Zasoby i cache (ważne na tabletach)
+### 4.1 Struktura assets
 
 assets/audio/global/Ping.mp3
 
@@ -246,7 +257,9 @@ assets/layouts/<faction>/...png
 
 assets/logos/<faction>/...png
 
-4.2 Wersjonowanie assetów (cache-busting)
+---
+
+### 4.2 Wersjonowanie assetów (cache-busting)
 
 Infoczytnik ma stałą:
 
@@ -258,8 +271,10 @@ Do URLi assetów jest dodawane:
 
 Zmieniaj ASSET_VERSION zawsze, gdy podmienisz PNG/MP3, żeby tablety nie trzymały starej wersji w cache.
 
-5) Jak rozwijać aplikację (procedury)
-5.1 Podmiana globalnych dźwięków
+---
+
+## 5) Jak rozwijać aplikację (procedury)
+### 5.1 Podmiana globalnych dźwięków
 
 Nadpisz pliki:
 
@@ -275,7 +290,9 @@ Commit
 
 Odśwież (na tabletach czasem trzeba wyczyścić cache / zmienić wersję)
 
-5.2 Dodanie nowej frakcji
+---
+
+### 5.2 Dodanie nowej frakcji
 
 Wymaga zmian w 2 plikach: GM.html i Infoczytnik.html.
 
@@ -305,7 +322,9 @@ Na koniec:
 
 Zmień ASSET_VERSION, jeśli dodałeś nowe pliki PNG/MP3.
 
-5.3 Dodanie nowego layoutu lub zmiana tła istniejącego
+---
+
+### 5.3 Dodanie nowego layoutu lub zmiana tła istniejącego
 
 Wrzuć/Podmień PNG w assets/layouts/<faction>/...
 
@@ -329,7 +348,9 @@ zostaw zapas, żeby nie dotykało ramki
 
 Zwiększ ASSET_VERSION (cache!)
 
-5.4 Zmiana fontu
+---
+
+### 5.4 Zmiana fontu
 
 Dodaj font do <head> (Google Fonts) lub użyj fontu lokalnego.
 
@@ -337,7 +358,9 @@ Ustaw w FONT_STACK[faction].
 
 Commit i odśwież.
 
-5.5 Dodanie/zmiana logo
+---
+
+### 5.5 Dodanie/zmiana logo
 
 Wrzuć logo do assets/logos/<faction>/...png
 
@@ -345,8 +368,10 @@ Dodaj wpis do FACTION_LOGO
 
 Zwiększ ASSET_VERSION (żeby odświeżyć cache)
 
-6) Diagnostyka (najczęstsze problemy)
-6.1 „Nie widzę zmian / tablet widzi starą wersję”
+---
+
+## 6) Diagnostyka (najczęstsze problemy)
+### 6.1 „Nie widzę zmian / tablet widzi starą wersję”
 
 Zwiększ ASSET_VERSION
 
@@ -354,7 +379,9 @@ Hard refresh (Ctrl+Shift+R)
 
 Na mobile: wyczyść cache strony / użyj nowszej wersji linku
 
-6.2 „Zawiesza się na ‘Kliknij aby odblokować dźwięk’”
+---
+
+### 6.2 „Zawiesza się na ‘Kliknij aby odblokować dźwięk’”
 
 Kliknij w overlay (spróbuj też dotknąć i przytrzymać).
 
@@ -366,7 +393,9 @@ błędzie JS blokującym wykonanie (sprawdź konsolę),
 
 nietypowych ustawieniach przeglądarki na tablecie.
 
-6.3 „Nie wysyła z GM / nie odbiera w Infoczytniku”
+---
+
+### 6.3 „Nie wysyła z GM / nie odbiera w Infoczytniku”
 
 Sprawdź czy config/firebase-config.js istnieje i jest poprawny.
 
@@ -374,8 +403,11 @@ Sprawdź czy Firestore jest włączony w Firebase Console.
 
 Sprawdź reguły Firestore (na start test mode ok).
 
-🇬🇧 Documentation (EN)
-1) Short description
+---
+
+# 🇬🇧 Documentation (EN)
+
+## 1) Short description
 
 WH40k Data-Slate is a lightweight web app made of two pages:
 
@@ -385,8 +417,10 @@ Infoczytnik.html — Player display screen (tablet/laptop) showing the message o
 
 They sync in real time via Firebase Firestore (dataslate/current).
 
-2) User guide (step by step)
-2.1 Requirements
+---
+
+## 2) User guide (step by step)
+### 2.1 Requirements
 
 Modern browser (Chrome/Chromium recommended)
 
@@ -394,7 +428,9 @@ Internet connection
 
 One device for GM and one for players (or two tabs on one device)
 
-2.2 Startup
+---
+
+### 2.2 Startup
 
 Open GM.html
 
@@ -404,7 +440,9 @@ On Infoczytnik click the overlay:
 “Click once to unlock audio”
 (Browsers block audio until user interaction.)
 
-2.3 Sending a message
+---
+
+### 2.3 Sending a message
 
 Choose Faction / layout
 
@@ -428,16 +466,22 @@ Prefix + (optional logo) + message + suffix are displayed
 
 Message sound plays
 
-2.4 Ping
+---
+
+### 2.4 Ping
 
 Click Ping → plays Ping sound.
 
-2.5 Clear screen
+---
+
+### 2.5 Clear screen
 
 Click Clear screen → clears text but keeps background.
 
-3) Technical overview
-3.1 Architecture
+---
+
+## 3) Technical overview
+### 3.1 Architecture
 
 GM.html writes state to Firestore
 
@@ -451,9 +495,12 @@ Document: current
 
 Path: dataslate/current
 
-3.2 Firebase config (config/firebase-config.js)
+---
+
+### 3.2 Firebase config (config/firebase-config.js)
 
 Create from template and paste your Firebase web config:
+```js
 window.firebaseConfig = {
   apiKey: "...",
   authDomain: "...",
@@ -462,10 +509,13 @@ window.firebaseConfig = {
   messagingSenderId: "...",
   appId: "..."
 };
+```
 
 Both pages read it from window.firebaseConfig.
 
-3.3 Firestore document schema (data contract)
+---
+
+### 3.3 Firestore document schema (data contract)
 
 Key fields:
 
@@ -493,7 +543,9 @@ pingUrl
 
 msgUrl / messageUrl
 
-3.4 Safe text area (why it never goes outside the frame)
+---
+
+### 3.4 Safe text area (why it never goes outside the frame)
 
 The background is an <img> with object-fit: contain.
 Text lives in an absolutely positioned .screen overlay.
@@ -504,13 +556,17 @@ The safe area margins are percentage-based CSS variables:
 
 Percentages scale with the background image across devices, ensuring the text stays inside the frame.
 
-3.5 Audio unlock overlay
+---
+
+### 3.5 Audio unlock overlay
 
 Mobile/desktop browsers block autoplay.
 Infoczytnik shows an overlay and unlocks audio after a click/tap.
 
-4) Assets & cache busting
-4.1 Assets structure
+---
+
+## 4) Assets & cache busting
+### 4.1 Assets structure
 
 assets/audio/global/Ping.mp3
 
@@ -520,7 +576,9 @@ assets/layouts/<faction>/...png
 
 assets/logos/<faction>/...png
 
-4.2 ASSET_VERSION
+---
+
+### 4.2 ASSET_VERSION
 
 Infoczytnik uses:
 
@@ -528,8 +586,10 @@ ASSET_VERSION = "YYYY-MM-DD-X"
 
 All assets are loaded with ?v=ASSET_VERSION to force refresh on tablets/browsers.
 
-5) Extending the project
-5.1 Replace global audio
+---
+
+## 5) Extending the project
+### 5.1 Replace global audio
 
 Replace:
 
@@ -543,13 +603,17 @@ Increase ASSET_VERSION
 
 Commit again
 
-5.2 Add a new faction
+---
+
+### 5.2 Add a new faction
 
 GM.html: add <option> + add LAYOUTS.new_faction
 
 Infoczytnik.html: add layout in LAYOUT_BG, optional FONT_STACK, FILLERS, FACTION_LOGO, custom SCREEN_INSETS/LAYOUT_AR
 
-5.3 Add/replace a layout
+---
+
+### 5.3 Add/replace a layout
 
 Put PNG in assets/layouts/<faction>/
 
@@ -561,13 +625,17 @@ Tune safe margins in SCREEN_INSETS
 
 Increase ASSET_VERSION
 
-5.4 Change fonts
+---
+
+### 5.4 Change fonts
 
 Add font to Google Fonts link
 
 Update FONT_STACK[faction]
 
-5.5 Add/replace logos
+---
+
+### 5.5 Add/replace logos
 
 Put PNG in assets/logos/<faction>/
 
@@ -575,7 +643,9 @@ Update FACTION_LOGO
 
 Increase ASSET_VERSION
 
-6) Troubleshooting
+---
+
+## 6) Troubleshooting
 
 Changes not visible: increase ASSET_VERSION, hard refresh, clear cache on mobile.
 
