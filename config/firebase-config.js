@@ -1,4 +1,4 @@
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
   authDomain: "wh40k-data-slate.firebaseapp.com",
   projectId: "wh40k-data-slate",
