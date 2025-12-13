@@ -2,7 +2,7 @@
 // Następnie wklej swój firebaseConfig z:
 // Firebase Console → Project settings → Your apps (Web) → Firebase SDK snippet (Config)
 
-export const firebaseConfig = {
+window.firebaseConfig = {
   apiKey: "PASTE_HERE",
   authDomain: "PASTE_HERE",
   projectId: "PASTE_HERE",
