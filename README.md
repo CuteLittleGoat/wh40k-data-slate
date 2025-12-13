@@ -1,3 +1,15 @@
+SETUP (TL;DR):
+1) Copy config/firebase-config.template.js → config/firebase-config.js
+2) Paste your firebaseConfig from Firebase Console into config/firebase-config.js
+3) Enable Firestore in Firebase (test mode is OK for start)
+4) Enable GitHub Pages (Settings → Pages)
+5) Open:
+   - GM.html
+   - Infoczytnik.html
+6) Click once in Infoczytnik to unlock audio.
+
+===========================================================
+
 WH40k Data-Slate (GM + Infoczytnik)
 Dokumentacja / Instrukcja (PL)
 Wersja: 2025-12-13
