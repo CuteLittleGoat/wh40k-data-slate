@@ -1,712 +1,424 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WH40k Data-Slate — GM</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WH40k Data-Slate — GM</title>
+  <style>
+    :root{--text:#eaeaea;--muted:#bdbdbd;--accent:#ffd27a;--border:#2a2a2a;--panel:rgba(18,18,18,.92);}
+    *{box-sizing:border-box}
+    body{margin:0;padding:18px;font-family:Arial,sans-serif;background:linear-gradient(180deg,#070707,#0f0f0f);color:var(--text);}
+    .wrap{max-width:980px;margin:0 auto}
+    h1{margin:0 0 10px 0;font-size:20px;color:var(--accent);letter-spacing:.3px}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+    label{display:block;margin:10px 0 6px 0;color:var(--muted);font-size:13px}
+    select,textarea,input[type="number"],input[type="color"],input[type="text"]{
+      width:100%;background:#0f0f0f;color:var(--text);border:1px solid var(--border);
+      border-radius:10px;padding:10px 12px;font-size:16px;outline:none;
+    }
+    textarea{min-height:140px;resize:vertical;line-height:1.3}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .col{flex:1;min-width:240px}
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      flex:1;min-width:160px;border:none;border-radius:12px;padding:12px 14px;font-size:16px;cursor:pointer;
+      background:#1d1d1d;color:var(--text);border:1px solid var(--border);
+    }
+    button.primary{background:linear-gradient(180deg,#3a2a12,#1c1408);border:1px solid rgba(255,210,122,.35);color:var(--accent);}
+    button.warn{background:linear-gradient(180deg,#1c0c0c,#120606);border:1px solid rgba(255,120,120,.25);color:#ffb3b3;}
+    .small{margin-top:10px;font-size:12px;color:var(--muted)}
+    .status{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border)}
+    .inline{
+      display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);
+      border-radius:10px;background:#0f0f0f;flex-wrap:wrap;
+    }
+    .inline .spacer{flex:1}
+    .preview{
+      margin:10px 0 0 0;padding:10px 12px;border-radius:10px;border:1px dashed rgba(255,255,255,.18);
+      background:rgba(0,0,0,.25);color:#cfcfcf;font-family:Consolas,"Courier New",monospace;font-size:13px;white-space:pre-wrap;
+    }
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);cursor:pointer;user-select:none;font-size:13px;color:#eaeaea;}
+    .chip span{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.25)}
 
-<style>
-  :root{
-    --bg:#070707;
-    --card:#0f0f0f;
-    --card2:#111;
-    --text:#e9e9e9;
-    --muted:#a7a7a7;
-    --line: rgba(255,255,255,.10);
-    --accent:#00ff66;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%; margin:0; background:var(--bg); color:var(--text); font-family: Calibri, Arial, sans-serif;}
-  .wrap{max-width:1100px; margin:24px auto; padding:0 16px;}
-  h1{margin:0 0 14px; font-size:34px; letter-spacing:.5px; color:#ffd27a}
-  .grid{display:grid; grid-template-columns: 1fr 1fr; gap:16px;}
-  @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
-
-  .card{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:16px;
-    box-shadow: 0 14px 40px rgba(0,0,0,.35);
-  }
-  .card h2{margin:0 0 10px; font-size:16px; color:#f2f2f2; opacity:.95}
-  label{display:block; margin:10px 0 6px; color:var(--muted); font-size:13px}
-  input[type="text"], input[type="number"], textarea, select{
-    width:100%;
-    background:rgba(0,0,0,.35);
-    border:1px solid rgba(255,255,255,.14);
-    color:var(--text);
-    border-radius:12px;
-    padding:12px 12px;
-    outline:none;
-  }
-  textarea{min-height:180px; resize:vertical; line-height:1.35;}
-  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
-  .row > *{flex:1 1 auto;}
-  .btn{
-    border:1px solid rgba(255,255,255,.16);
-    background:rgba(0,0,0,.35);
-    color:var(--text);
-    border-radius:12px;
-    padding:12px 14px;
-    cursor:pointer;
-    font-weight:600;
-  }
-  .btn:hover{border-color: rgba(255,255,255,.26);}
-  .btn.primary{background:rgba(0,255,102,.10); border-color: rgba(0,255,102,.35);}
-  .btn.danger{background:rgba(255,80,80,.10); border-color: rgba(255,80,80,.35);}
-  .btn.small{padding:9px 10px; font-size:13px; font-weight:600;}
-  .hint{margin-top:8px; color:var(--muted); font-size:12px; line-height:1.35}
-  .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0;}
-  .toggle{
-    display:flex; align-items:center; gap:10px;
-    color:var(--text);
-    user-select:none;
-  }
-  .toggle input{width:18px; height:18px;}
-  .kpi{font-size:12px; color:var(--muted)}
-  .status{
-    margin-top:12px;
-    border:1px solid rgba(255,255,255,.10);
-    background:rgba(0,0,0,.30);
-    border-radius:14px;
-    padding:10px 12px;
-    color:#cfcfcf;
-    font-size:12px;
-    min-height: 40px;
-    white-space: pre-wrap;
-  }
-  .quickcolors{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;}
-  .chip{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 12px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.16);
-    background:rgba(0,0,0,.25);
-    cursor:pointer;
-    user-select:none;
-  }
-  .dot{width:14px; height:14px; border-radius:50%;}
-  .chip:hover{border-color: rgba(255,255,255,.26);}
-
-  /* ====== Losowość fillerów – układ z poprawionym wyrównaniem ====== */
-  .fillerGrid{
-    display:grid;
-    grid-template-columns: 1fr 320px;
-    gap:14px;
-    align-items:start;
-  }
-  @media (max-width: 980px){
-    .fillerGrid{grid-template-columns:1fr;}
-  }
-  .manualBox{
-    border:1px solid rgba(255,255,255,.10);
-    background:rgba(0,0,0,.22);
-    border-radius:14px;
-    padding:12px;
-  }
-  .manualGrid{
-    display:grid;
-    grid-template-columns: 1fr;
-    gap:10px;
-  }
-  .inlineLabel{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    color:var(--muted);
-    font-size:13px;
-  }
-  .inlineLabel b{color:var(--text); font-weight:700}
-  .inlineRow{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:10px;
-  }
-  .inlineRow input{
-    width:120px;
-    text-align:center;
-  }
-
-  .previewBox{
-    border:1px dashed rgba(255,255,255,.14);
-    border-radius:14px;
-    padding:12px;
-    background:rgba(0,0,0,.18);
-    font-family: Consolas, "Courier New", monospace;
-    color:#d6d6d6;
-    white-space:pre-wrap;
-    min-height: 70px;
-  }
-
-  .twoCols{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:12px;
-  }
-  @media (max-width: 980px){
-    .twoCols{grid-template-columns:1fr;}
-  }
-</style>
+    /* ===== NOWY UKŁAD: Losowość fillerów (Prefix/Suffix wyrównanie jak prosisz) ===== */
+    .fillerBox{
+      padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0f0f0f;
+    }
+    .fillerTop{
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .fillerTop input[type="checkbox"]{width:18px;height:18px;margin:0}
+    .fillerManual{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      align-items:end;
+    }
+    .fillerManual .right{
+      justify-self:end;
+      width:min(260px, 100%);
+    }
+    .fillerManual .left{
+      width:min(260px, 100%);
+    }
+    .miniLabel{
+      color:#777;
+      font-size:12px;
+      margin-bottom:6px;
+      display:block;
+    }
+    .pairRow{
+      display:flex;gap:10px;align-items:center;justify-content:flex-end;
+    }
+    .pairRow b{color:#bdbdbd;font-weight:600}
+    .pairRow input[type="number"]{width:110px}
+  </style>
 </head>
-
 <body>
-<div class="wrap">
-  <h1>WH40k Data-Slate — GM</h1>
-
-  <div class="grid">
-
-    <!-- LEFT: Layout + Style -->
+  <div class="wrap">
+    <h1>WH40k Data-Slate — GM</h1>
     <div class="card">
-      <h2>Ustawienia wyglądu (Infoczytnik)</h2>
-
-      <label for="faction">Frakcja / layout</label>
-      <select id="faction">
-        <option value="mechanicus">Adeptus Mechanicus</option>
-        <option value="inquisition">Inkwizycja</option>
-        <option value="militarum">Astra Militarum</option>
-        <option value="chaos_undivided">Chaos Undivided</option>
-        <option value="khorne">Khorne</option>
-        <option value="nurgle">Nurgle</option>
-        <option value="tzeentch">Tzeentch</option>
-        <option value="slaanesh">Slaanesh</option>
-      </select>
-
-      <div class="twoCols">
-        <div>
-          <label for="msgColor">Kolor tekstu (wiadomość)</label>
-          <input id="msgColor" type="text" placeholder="#00ff66" value="#00ff66" />
-          <div class="quickcolors" id="msgQuick">
-            <div class="chip" data-color="#00ff66"><span class="dot" style="background:#00ff66"></span>Zielony</div>
-            <div class="chip" data-color="#ff3b3b"><span class="dot" style="background:#ff3b3b"></span>Czerwony</div>
-            <div class="chip" data-color="#d6b04a"><span class="dot" style="background:#d6b04a"></span>Złoty</div>
-            <div class="chip" data-color="#ffffff"><span class="dot" style="background:#ffffff; border:1px solid rgba(0,0,0,.35)"></span>Biały</div>
-          </div>
-        </div>
-
-        <div>
-          <label for="msgSize">Wielkość fontu (wiadomość) — px</label>
-          <input id="msgSize" type="number" min="12" max="80" step="1" value="28" />
-          <div class="hint">Wysyłamy jako <code>msgFontSize</code> (np. <code>28px</code>). Jeśli chcesz wrócić do automatycznego clamp – powiedz.</div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="twoCols">
-        <div>
-          <label for="psColor">Kolor Prefix + Suffix (wspólny)</label>
-          <input id="psColor" type="text" placeholder="rgba(...) albo #ffffff" value="rgba(255,255,255,.88)" />
-          <div class="quickcolors" id="psQuick">
-            <div class="chip" data-color="#00ff66"><span class="dot" style="background:#00ff66"></span>Zielony</div>
-            <div class="chip" data-color="#ff3b3b"><span class="dot" style="background:#ff3b3b"></span>Czerwony</div>
-            <div class="chip" data-color="#d6b04a"><span class="dot" style="background:#d6b04a"></span>Złoty</div>
-            <div class="chip" data-color="#ffffff"><span class="dot" style="background:#ffffff; border:1px solid rgba(0,0,0,.35)"></span>Biały</div>
-          </div>
-          <div class="hint">Wysyłamy do Infoczytnika jako <code>prefixColor</code> i <code>suffixColor</code> (to samo).</div>
-        </div>
-
-        <div>
-          <label for="psSize">Wielkość fontu Prefix + Suffix (wspólna) — px</label>
-          <input id="psSize" type="number" min="10" max="60" step="1" value="14" />
-          <div class="hint">Wysyłamy jako <code>prefixFontSize</code> i <code>suffixFontSize</code> (to samo).</div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <h2>Audio (Infoczytnik)</h2>
-      <div class="twoCols">
-        <div>
-          <div class="toggle">
-            <input type="checkbox" id="useDefaultPing" checked>
-            <label for="useDefaultPing" style="margin:0; color:var(--text); font-size:14px;">Domyślny Ping</label>
-          </div>
-          <label>Domyślny Ping URL</label>
-          <input id="defaultPingUrl" type="text" value="assets/audio/global/Ping.mp3" />
-          <label>Ping URL dla wybranej frakcji (opcjonalnie)</label>
-          <input id="factionPingUrl" type="text" placeholder="Zostaw puste, żeby użyć domyślnego" disabled />
-        </div>
-
-        <div>
-          <div class="toggle">
-            <input type="checkbox" id="useDefaultMsg" checked>
-            <label for="useDefaultMsg" style="margin:0; color:var(--text); font-size:14px;">Domyślny Message</label>
-          </div>
-          <label>Domyślny Message URL</label>
-          <input id="defaultMsgUrl" type="text" value="assets/audio/global/Message.mp3" />
-          <label>Message URL dla wybranej frakcji (opcjonalnie)</label>
-          <input id="factionMsgUrl" type="text" placeholder="Zostaw puste, żeby użyć domyślnego" disabled />
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn" id="saveAudio">Zapisz audio (defaults + ta frakcja)</button>
-        <button class="btn" id="ping">Ping</button>
-      </div>
-
-      <div class="hint">
-        „Zapisz audio” zapisuje ustawienia do Firestore (dok. <code>dataslate/config</code>), żeby Infoczytnik mógł ich używać.
-        Ping odtwarza dźwięk ping w Infoczytniku.
-      </div>
-
-    </div>
-
-    <!-- RIGHT: Message + Fillers -->
-    <div class="card">
-      <h2>Wiadomość</h2>
-
-      <div class="fillerGrid">
-        <div>
-          <label class="toggle" style="margin-top:6px;">
-            <input type="checkbox" id="randomFillers" checked>
-            <span><b>Losuj automatycznie</b></span>
-          </label>
-          <div class="hint">Gdy wyłączone – wybierasz osobno numer Prefix i Suffix (1..N zależnie od frakcji).</div>
-
-          <label>Podgląd Prefix</label>
-          <div class="previewBox" id="previewPrefix">—</div>
-
-          <label for="text">Treść wiadomości</label>
-          <textarea id="text" placeholder="Wpisz treść..."></textarea>
-
-          <div class="row" style="margin-top:10px;">
-            <button class="btn small" id="clearText">Wyczyść pole tekstowe</button>
-          </div>
-
-          <label>Podgląd Suffix</label>
-          <div class="previewBox" id="previewSuffix">—</div>
-        </div>
-
-        <!-- MANUAL BOX (po prawej) -->
-        <div class="manualBox">
-          <div class="manualGrid">
-            <div class="inlineLabel">
-              <span>Ręcznie:</span> <b>Prefix</b>
-            </div>
-            <div class="inlineRow">
-              <input id="manualPrefix" type="number" min="1" step="1" value="1">
-            </div>
-
-            <!-- WYRÓWNANIE: Suffix pod Prefix, po prawej -->
-            <div class="inlineLabel">
-              <span></span> <b>Suffix</b>
-            </div>
-            <div class="inlineRow">
-              <input id="manualSuffix" type="number" min="1" step="1" value="1">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
 
       <div class="row">
-        <button class="btn primary" id="send">Wyślij wiadomość</button>
-        <button class="btn danger" id="clearScreen">Wyczyść ekran</button>
+        <!-- LEWA KOLUMNA -->
+        <div class="col">
+          <label>Frakcja / layout</label>
+          <select id="faction">
+            <option value="mechanicus">Adeptus Mechanicus</option>
+            <option value="inquisition">Inkwizycja</option>
+            <option value="militarum">Astra Militarum</option>
+            <option value="khorne">Khorne</option>
+            <option value="nurgle">Nurgle</option>
+            <option value="tzeentch">Tzeentch</option>
+            <option value="slaanesh">Slaanesh</option>
+            <option value="chaos_undivided">Chaos Undivided</option>
+          </select>
+
+          <!-- (5) Szybkie kolory wiadomości + BIAŁY -->
+          <label>Kolor fontu (treść wiadomości)</label>
+          <input type="color" id="fontColor" value="#00ff66" />
+          <div class="chips" id="msgColorChips">
+            <div class="chip" data-target="msg" data-color="#00ff66"><span style="background:#00ff66"></span>Zielony</div>
+            <div class="chip" data-target="msg" data-color="#ff3333"><span style="background:#ff3333"></span>Czerwony</div>
+            <div class="chip" data-target="msg" data-color="#d4af37"><span style="background:#d4af37"></span>Złoty</div>
+            <div class="chip" data-target="msg" data-color="#ffffff"><span style="background:#ffffff"></span>Biały</div>
+          </div>
+
+          <!-- (2) Wielkość fontu treści -->
+          <label>Wielkość fontu (treść wiadomości) — px</label>
+          <input type="number" id="msgFontSize" min="12" max="80" step="1" value="28" />
+
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0;">
+
+          <!-- (1) Kolor Prefix+Suffix (wspólny) -->
+          <label>Kolor Prefix + Suffix (wspólny)</label>
+          <!-- daję tekstowe pole żeby obsłużyć rgba() i hex; dla wygody też color-picker -->
+          <div class="row" style="gap:10px;">
+            <div class="col" style="min-width:180px;">
+              <input type="text" id="psColorText" value="rgba(255,255,255,.88)" />
+              <div class="small">Możesz wpisać np. <code>#ffffff</code> albo <code>rgba(255,255,255,.88)</code></div>
+            </div>
+            <div class="col" style="min-width:160px;">
+              <input type="color" id="psColorPicker" value="#ffffff" />
+              <div class="small">Picker ustawia kolor jako <code>#RRGGBB</code></div>
+            </div>
+          </div>
+
+          <!-- (5) Szybkie kolory Prefix/Suffix (te same) -->
+          <div class="chips" id="psColorChips">
+            <div class="chip" data-target="ps" data-color="#00ff66"><span style="background:#00ff66"></span>Zielony</div>
+            <div class="chip" data-target="ps" data-color="#ff3333"><span style="background:#ff3333"></span>Czerwony</div>
+            <div class="chip" data-target="ps" data-color="#d4af37"><span style="background:#d4af37"></span>Złoty</div>
+            <div class="chip" data-target="ps" data-color="#ffffff"><span style="background:#ffffff"></span>Biały</div>
+          </div>
+
+          <!-- (3) Wielkość fontu Prefix+Suffix -->
+          <label>Wielkość fontu Prefix + Suffix (wspólna) — px</label>
+          <input type="number" id="psFontSize" min="10" max="60" step="1" value="14" />
+
+          <div class="small">
+            Uwaga: logo ma stały rozmiar w Infoczytniku, więc tu go nie ruszamy.
+            Zmiana rozmiaru prefixu może spowodować zawijanie prefixu (OK), ale logo zostaje.
+          </div>
+        </div>
+
+        <!-- PRAWA KOLUMNA -->
+        <div class="col">
+          <label>Losowość fillerów</label>
+
+          <!-- (4) NOWY układ: Suffix po prawej POD Prefix -->
+          <div class="fillerBox">
+            <div class="fillerTop">
+              <input type="checkbox" id="randomFillers" checked />
+              <span>Losuj automatycznie</span>
+            </div>
+
+            <div class="fillerManual">
+              <div class="left">
+                <span class="miniLabel">Ręcznie</span>
+                <div class="pairRow">
+                  <b>Prefix</b>
+                  <input type="number" id="prefixIndex" min="1" value="1" />
+                </div>
+              </div>
+
+              <div class="right">
+                <div class="pairRow">
+                  <b>Suffix</b>
+                  <input type="number" id="suffixIndex" min="1" value="1" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="small">
+            Gdy losowanie wyłączone, wybierasz osobno numer Prefix i Suffix (1..N zależnie od frakcji).
+          </div>
+        </div>
       </div>
 
-      <div class="status" id="status">Gotowe.</div>
-      <div class="kpi" style="margin-top:8px;">
-        Tip: dodaj <code>?debug=1</code> do URL Infoczytnika, jeśli chcesz logi na ekranie.
+      <div class="preview" id="prefixPreview"></div>
+
+      <label>Treść komunikatu</label>
+      <textarea id="message" placeholder="Wpisz komunikat dla graczy..."></textarea>
+
+      <div class="preview" id="suffixPreview"></div>
+
+      <div class="btnrow">
+        <button class="primary" id="sendBtn">Wyślij</button>
+        <button class="warn" id="pingBtn">Ping</button>
+        <button id="clearBtn">Wyczyść ekran</button>
+        <button id="clearTextBtn">Wyczyść pole</button>
       </div>
+
+      <div class="small">Status: <span class="status" id="status">…</span></div>
     </div>
-
   </div>
-</div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import {
-    getFirestore, doc, setDoc, updateDoc, serverTimestamp, getDoc
-  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore-compat.js"></script>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
-    authDomain: "wh40k-data-slate.firebaseapp.com",
-    projectId: "wh40k-data-slate",
-    storageBucket: "wh40k-data-slate.firebasestorage.app",
-    messagingSenderId: "382792444120",
-    appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
-  };
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVoWzXtO-vipsxnvZlFkcqcNgYYuH3osc",
+      authDomain: "wh40k-data-slate.firebaseapp.com",
+      projectId: "wh40k-data-slate",
+      storageBucket: "wh40k-data-slate.firebasestorage.app",
+      messagingSenderId: "382792444120",
+      appId: "1:382792444120:web:9eb27e2ed29109ac838fad"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  const currentRef = doc(db, "dataslate", "current");
-  const configRef  = doc(db, "dataslate", "config");
+    const currentRef = db.collection("dataslate").doc("current");
 
-  // ===== Fillery (do podglądu i wysyłki indeksów) =====
-  const FILLERS = {
-    mechanicus: {
-      prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
-      suffixes:["++ PRAISE THE OMNISSIAH ++","++ MACHINE SPIRIT CALMED ++","++ THE FLESH IS WEAK ++","++ SYSTEM CLEANSED ++","++ BINARY PRAYER SENT ++","++ OMNISSIAH GUIDE US ++","++ SERVITOR READY ++","++ RITUAL COMPLETE ++","++ PRAY TO THE CODE ++"]
-    },
-    inquisition: {
-      prefixes:["++ INQUISITORIAL NOTICE ++","++ DATA INTERCEPTED ++","++ DECRYPTING ORDER ++","++ ORDER: SIGMA-9 ++","++ COGITATOR ACCESS ++","++ BY HIS WILL ++","++ CLASSIFIED MATERIAL ++","++ MIND CLEANSED ++","++ CODEX SECURED ++"],
-      suffixes:["++ THE EMPEROR PROTECTS ++","++ AUTHORIZATION VERIFIED ++","++ PURGE COMPLETE ++","++ FAITH REMAINS ++","++ THOUGHT FOR THE DAY ++","++ HERESY PURGED ++","++ OATH UPHELD ++","++ FAITH IS ARMOR ++","++ EXAMINATION COMPLETE ++"]
-    },
-    militarum: {
-      prefixes:["++ IMPERIAL SIGNAL ++","++ HIGH COMMAND ORDER ++","++ ORDERS INCOMING ++","++ TACTICAL FEED ++","++ REGIMENTAL DATA ++","++ COMMAND OVERRIDE ++","++ BATTLELINE UPLINK ++","++ ENGAGEMENT ACTIVE ++","++ OPERATIONAL BRIEF ++"],
-      suffixes:["++ GLORY TO THE GUARD ++","++ VICTORY IS ASSURED ++","++ CADIA STANDS ++","++ DUTY FULFILLED ++","++ NO SACRIFICE TOO GREAT ++","++ PERIMETER SECURED ++","++ FOR THE EMPEROR ++","++ STATUS: GREEN ++","++ STRATEGIC DIRECTIVE ++"]
-    },
-    chaos_undivided: {
-      prefixes:["++ WARP STIRRING ++","++ TRANSMISSION CORRUPTED ++","++ HERESY INBOUND ++","++ WARP SIGNATURE FOUND ++","++ SACRIFICE ACCEPTED ++","++ WARP ENERGY RISING ++","++ ORDER BREAKS ++","++ FLESH TURNS ++","++ ASCENSION IMMINENT ++"],
-      suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"]
-    },
-    khorne: {
-      prefixes:["++ BLOOD ALERT ++","++ SKULL COUNT RISING ++","++ RAGE TRANSMISSION ++","++ COMBAT UPLINK ++","++ SLAUGHTER INITIATED ++","++ VIOLENCE MAXIMUM ++","++ NO PEACE ONLY WAR ++","++ RIP THEIR HEADS ++","++ DOMINATE THROUGH BLOOD ++"],
-      suffixes:["++ BLOOD FOR THE BLOOD GOD ++","++ SKULLS FOR THE THRONE ++","++ RIP AND TEAR ++","++ ALL MUST BLEED ++","++ DEATH WITHOUT END ++","++ STRIKE WITHOUT MERCY ++","++ AXE ONLINE ++","++ RED FLOWS ++","++ KILL. MAIM. BURN. ++"]
-    },
-    nurgle: {
-      prefixes:["++ BLOAT SIGNAL ++","++ DECAY INITIATED ++","++ DISEASE VECTOR ACTIVE ++","++ PLAGUE SEED SENT ++","++ SPOREFIELD DEPLOYED ++","++ VIRUSCODE ENGAGED ++","++ ALL IS ROT ++","++ MUCOUS FLOW ++","++ FOULNESS RISES ++"],
-      suffixes:["++ PRAISE GRANDPA NURGLE ++","++ FILTH TRANSMITTED ++","++ ROTTEN JOY ++","++ CONTAGION SPREADS ++","++ FLIES REJOICE ++","++ FESTERING COMPLETE ++","++ BLESSINGS OF ROT ++","++ FLESH SAGS ++","++ CORRUPTION GLORIOUS ++"]
-    },
-    tzeentch: {
-      prefixes:["++ KNOWLEDGE UNFOLDS ++","++ SCHEME RUNNING ++","++ DATA TWISTED ++","++ WARP-TEXT INCOMING ++","++ INVERSION ACTIVE ++","++ DESTINY WRITTEN ++","++ NOTHING IS AS IT SEEMS ++","++ PATTERNS SHIFT ++","++ BURN THE SCRIPT ++"],
-      suffixes:["++ ALL IS CHANGE ++","++ PLAN: PHASE 7 ++","++ EYE OPENS ++","++ BIRD OF FATE SMILES ++","++ THOUGHT MUTATED ++","++ CYCLE CONTINUES ++","++ OBSERVE THE CHANGE ++","++ REWRITE EVERYTHING ++","++ JUST AS PLANNED ++"]
-    },
-    slaanesh: {
-      prefixes:["++ ECSTASY PULSE ++","++ SENSORY OVERLOAD ++","++ LUXURY CHANNEL OPEN ++","++ VELVET SIGNAL ++","++ DESIRE BREACH ++","++ TOUCH THE DIVINE ++","++ TASTE THE PAIN ++","++ LUSTWAVE TRANSMITTED ++","++ EXCESS COMPLETE ++"],
-      suffixes:["++ FEED THE HUNGER ++","++ THE PERFECT MOMENT ++","++ PAIN IS PLEASURE ++","++ EXCESS IS TRUTH ++","++ PLEASURE SATURATED ++","++ UNHOLY HARMONY ++","++ FEEL EVERYTHING ++","++ TEMPTATION SPIKE ++","++ PERFECTION IS BLISS ++"]
-    }
-  };
+    const el = {
+      faction: document.getElementById("faction"),
 
-  // ===== UI =====
-  const el = {
-    faction: document.getElementById("faction"),
+      // treść wiadomości
+      fontColor: document.getElementById("fontColor"),
+      msgFontSize: document.getElementById("msgFontSize"),
 
-    msgColor: document.getElementById("msgColor"),
-    msgQuick: document.getElementById("msgQuick"),
-    msgSize: document.getElementById("msgSize"),
+      // prefix/suffix styl
+      psColorText: document.getElementById("psColorText"),
+      psColorPicker: document.getElementById("psColorPicker"),
+      psFontSize: document.getElementById("psFontSize"),
 
-    psColor: document.getElementById("psColor"),
-    psQuick: document.getElementById("psQuick"),
-    psSize: document.getElementById("psSize"),
+      // fillery
+      randomFillers: document.getElementById("randomFillers"),
+      prefixIndex: document.getElementById("prefixIndex"),
+      suffixIndex: document.getElementById("suffixIndex"),
 
-    randomFillers: document.getElementById("randomFillers"),
-    manualPrefix: document.getElementById("manualPrefix"),
-    manualSuffix: document.getElementById("manualSuffix"),
-    previewPrefix: document.getElementById("previewPrefix"),
-    previewSuffix: document.getElementById("previewSuffix"),
+      // message
+      message: document.getElementById("message"),
 
-    text: document.getElementById("text"),
-    clearText: document.getElementById("clearText"),
+      // buttons
+      sendBtn: document.getElementById("sendBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      clearTextBtn: document.getElementById("clearTextBtn"),
+      pingBtn: document.getElementById("pingBtn"),
 
-    useDefaultPing: document.getElementById("useDefaultPing"),
-    useDefaultMsg: document.getElementById("useDefaultMsg"),
-    defaultPingUrl: document.getElementById("defaultPingUrl"),
-    defaultMsgUrl: document.getElementById("defaultMsgUrl"),
-    factionPingUrl: document.getElementById("factionPingUrl"),
-    factionMsgUrl: document.getElementById("factionMsgUrl"),
-    saveAudio: document.getElementById("saveAudio"),
-    ping: document.getElementById("ping"),
+      // ui
+      status: document.getElementById("status"),
+      prefixPreview: document.getElementById("prefixPreview"),
+      suffixPreview: document.getElementById("suffixPreview"),
 
-    send: document.getElementById("send"),
-    clearScreen: document.getElementById("clearScreen"),
-    status: document.getElementById("status"),
-  };
+      // chips
+      chips: Array.from(document.querySelectorAll(".chip")),
+    };
 
-  function setStatus(s){
-    el.status.textContent = s;
-  }
+    const LAYOUTS = {
+      mechanicus:{prefixes:["++ INCOMING DATA FEED ++","++ SYSTEM ANALYSIS BEGIN ++","++ ENCRYPTION ONLINE ++","++ ENGAGE LITURGY ++","++ ARCHIVE ACCESS ++","++ LOGIS-CHANNEL ACTIVE ++","++ DATA LINK ESTABLISHED ++","++ SIGNAL LOCKED ++","++ CORE STABILIZED ++"],
+                 suffixes:["++ PRAISE THE OMNISSIAH ++","++ MACHINE SPIRIT CALMED ++","++ THE FLESH IS WEAK ++","++ SYSTEM CLEANSED ++","++ BINARY PRAYER SENT ++","++ OMNISSIAH GUIDE US ++","++ SERVITOR READY ++","++ RITUAL COMPLETE ++","++ PRAY TO THE CODE ++"]},
+      inquisition:{prefixes:["++ INQUISITORIAL NOTICE ++","++ DATA INTERCEPTED ++","++ DECRYPTING ORDER ++","++ ORDER: SIGMA-9 ++","++ COGITATOR ACCESS ++","++ BY HIS WILL ++","++ CLASSIFIED MATERIAL ++","++ MIND CLEANSED ++","++ CODEX SECURED ++"],
+                  suffixes:["++ THE EMPEROR PROTECTS ++","++ AUTHORIZATION VERIFIED ++","++ PURGE COMPLETE ++","++ FAITH REMAINS ++","++ THOUGHT FOR THE DAY ++","++ HERESY PURGED ++","++ OATH UPHELD ++","++ FAITH IS ARMOR ++","++ EXAMINATION COMPLETE ++"]},
+      militarum:{prefixes:["++ IMPERIAL SIGNAL ++","++ HIGH COMMAND ORDER ++","++ ORDERS INCOMING ++","++ TACTICAL FEED ++","++ REGIMENTAL DATA ++","++ COMMAND OVERRIDE ++","++ BATTLELINE UPLINK ++","++ ENGAGEMENT ACTIVE ++","++ OPERATIONAL BRIEF ++"],
+                 suffixes:["++ GLORY TO THE GUARD ++","++ VICTORY IS ASSURED ++","++ CADIA STANDS ++","++ DUTY FULFILLED ++","++ NO SACRIFICE TOO GREAT ++","++ PERIMETER SECURED ++","++ FOR THE EMPEROR ++","++ STATUS: GREEN ++","++ STRATEGIC DIRECTIVE ++"]},
+      khorne:{prefixes:["++ BLOOD ALERT ++","++ SKULL COUNT RISING ++","++ RAGE TRANSMISSION ++","++ COMBAT UPLINK ++","++ SLAUGHTER INITIATED ++","++ VIOLENCE MAXIMUM ++","++ NO PEACE ONLY WAR ++","++ RIP THEIR HEADS ++","++ DOMINATE THROUGH BLOOD ++"],
+              suffixes:["++ BLOOD FOR THE BLOOD GOD ++","++ SKULLS FOR THE THRONE ++","++ RIP AND TEAR ++","++ ALL MUST BLEED ++","++ DEATH WITHOUT END ++","++ STRIKE WITHOUT MERCY ++","++ AXE ONLINE ++","++ RED FLOWS ++","++ KILL. MAIM. BURN. ++"]},
+      nurgle:{prefixes:["++ BLOAT SIGNAL ++","++ DECAY INITIATED ++","++ DISEASE VECTOR ACTIVE ++","++ PLAGUE SEED SENT ++","++ SPOREFIELD DEPLOYED ++","++ VIRUSCODE ENGAGED ++","++ ALL IS ROT ++","++ FLESH SAGS ++","++ FOULNESS RISES ++"],
+              suffixes:["++ PRAISE GRANDPA NURGLE ++","++ FILTH TRANSMITTED ++","++ ROTTEN JOY ++","++ CONTAGION SPREADS ++","++ FLIES REJOICE ++","++ FESTERING COMPLETE ++","++ MUCOUS FLOW ++","++ BLESSINGS OF ROT ++","++ CORRUPTION GLORIOUS ++"]},
+      tzeentch:{prefixes:["++ KNOWLEDGE UNFOLDS ++","++ SCHEME RUNNING ++","++ DATA TWISTED ++","++ WARP-TEXT INCOMING ++","++ INVERSION ACTIVE ++","++ DESTINY WRITTEN ++","++ NOTHING IS AS IT SEEMS ++","++ PATTERNS SHIFT ++","++ BURN THE SCRIPT ++"],
+               suffixes:["++ ALL IS CHANGE ++","++ PLAN: PHASE 7 ++","++ EYE OPENS ++","++ BIRD OF FATE SMILES ++","++ THOUGHT MUTATED ++","++ CYCLE CONTINUES ++","++ OBSERVE THE CHANGE ++","++ REWRITE EVERYTHING ++","++ JUST AS PLANNED ++"]},
+      slaanesh:{prefixes:["++ ECSTASY PULSE ++","++ SENSORY OVERLOAD ++","++ LUXURY CHANNEL OPEN ++","++ VELVET SIGNAL ++","++ DESIRE BREACH ++","++ TOUCH THE DIVINE ++","++ TASTE THE PAIN ++","++ LUSTWAVE TRANSMITTED ++","++ EXCESS COMPLETE ++"],
+               suffixes:["++ FEED THE HUNGER ++","++ THE PERFECT MOMENT ++","++ PAIN IS PLEASURE ++","++ EXCESS IS TRUTH ++","++ PLEASURE SATURATED ++","++ UNHOLY HARMONY ++","++ FEEL EVERYTHING ++","++ TEMPTATION SPIKE ++","++ PERFECTION IS BLISS ++"]},
+      chaos_undivided:{prefixes:["++ WARP STIRRING ++","++ TRANSMISSION CORRUPTED ++","++ HERESY INBOUND ++","++ WARP SIGNATURE FOUND ++","++ SACRIFICE ACCEPTED ++","++ WARP ENERGY RISING ++","++ ORDER BREAKS ++","++ FLESH TURNS ++","++ ASCENSION IMMINENT ++"],
+                      suffixes:["++ GLORY TO CHAOS ++","++ DARK GODS SMILE ++","++ THE EYE OPENS ++","++ ASCEND AND BURN ++","++ ALL HAIL THE DARK GODS ++","++ REALSPACE BLEEDS ++","++ STARS ARE WRONG ++","++ VOID WITHIN ++","++ ETERNAL CHANGE ++"]},
+    };
 
-  // ===== Helpers =====
-  function clampIndex(idx, max){
-    const n = Number(idx);
-    if(!Number.isFinite(n)) return 1;
-    return Math.max(1, Math.min(max, Math.floor(n)));
-  }
+    function setStatus(t){ el.status.textContent = t; }
+    function clampIndex(n, max){ const x=Number(n); if(!Number.isFinite(x)) return 1; return Math.min(max, Math.max(1, Math.floor(x))); }
+    function rand1to(max){ return Math.floor(Math.random()*max)+1; }
+    function nonce(){ return String(Date.now()) + "-" + String(Math.random()).slice(2); }
+    function getLayout(){ return LAYOUTS[el.faction.value] || LAYOUTS.mechanicus; }
 
-  function pickFrom(arr, idx1){
-    const i = clampIndex(idx1, arr.length) - 1;
-    return arr[i] ?? "";
-  }
-
-  function getFactionFillers(faction){
-    return FILLERS[faction] || FILLERS.mechanicus;
-  }
-
-  function rand1to(n){
-    return 1 + Math.floor(Math.random()*n);
-  }
-
-  function updateManualEnabled(){
-    const on = !el.randomFillers.checked;
-    el.manualPrefix.disabled = !on;
-    el.manualSuffix.disabled = !on;
-  }
-
-  function updateAudioEnabled(){
-    el.factionPingUrl.disabled = el.useDefaultPing.checked;
-    el.factionMsgUrl.disabled  = el.useDefaultMsg.checked;
-  }
-
-  function updatePreviews(){
-    const faction = el.faction.value;
-    const f = getFactionFillers(faction);
-
-    let pIdx = Number(el.manualPrefix.value || 1);
-    let sIdx = Number(el.manualSuffix.value || 1);
-
-    if(el.randomFillers.checked){
-      pIdx = rand1to(f.prefixes.length);
-      sIdx = rand1to(f.suffixes.length);
-    }else{
-      pIdx = clampIndex(pIdx, f.prefixes.length);
-      sIdx = clampIndex(sIdx, f.suffixes.length);
+    function normalizePx(n, min, max, fallback){
+      const x = Number(n);
+      if(!Number.isFinite(x)) return fallback;
+      return Math.max(min, Math.min(max, Math.floor(x)));
     }
 
-    el.previewPrefix.textContent = pickFrom(f.prefixes, pIdx) || "—";
-    el.previewSuffix.textContent = pickFrom(f.suffixes, sIdx) || "—";
-  }
+    function getPrefixSuffixColor(){
+      // używamy tekstowego jako "źródła prawdy" (bo może być rgba())
+      const t = (el.psColorText.value || "").trim();
+      return t || "rgba(255,255,255,.88)";
+    }
 
-  function wireQuickColors(containerEl, targetInput){
-    containerEl.querySelectorAll(".chip").forEach(chip=>{
-      chip.addEventListener("click", ()=>{
-        const c = chip.getAttribute("data-color");
-        targetInput.value = c;
-      });
+    function computePreview(){
+      const cfg=getLayout();
+      const pMax=cfg.prefixes.length, sMax=cfg.suffixes.length;
+      const pIdx=el.randomFillers.checked ? rand1to(pMax) : clampIndex(el.prefixIndex.value, pMax);
+      const sIdx=el.randomFillers.checked ? rand1to(sMax) : clampIndex(el.suffixIndex.value, sMax);
+      el.prefixPreview.textContent = cfg.prefixes[pIdx-1] || "";
+      el.suffixPreview.textContent = cfg.suffixes[sIdx-1] || "";
+
+      // wygasz/odblokuj pola ręczne
+      const manualDisabled = el.randomFillers.checked;
+      el.prefixIndex.disabled = manualDisabled;
+      el.suffixIndex.disabled = manualDisabled;
+    }
+
+    async function sendMessage(isClear){
+      const cfg=getLayout();
+      const pMax=cfg.prefixes.length, sMax=cfg.suffixes.length;
+      const prefixIndex=el.randomFillers.checked ? rand1to(pMax) : clampIndex(el.prefixIndex.value, pMax);
+      const suffixIndex=el.randomFillers.checked ? rand1to(sMax) : clampIndex(el.suffixIndex.value, sMax);
+
+      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 28);
+      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 14);
+
+      setStatus("wysyłam…");
+      try{
+        await currentRef.set({
+          type: isClear ? "clear" : "message",
+          faction: el.faction.value,
+
+          // treść wiadomości
+          color: el.fontColor.value || "#00ff66",      // Infoczytnik zwykle czyta "color"
+          fontColor: el.fontColor.value || "#00ff66",  // zostawiamy też "fontColor" dla kompatybilności
+          msgFontSize: msgFontPx + "px",
+
+          // prefix/suffix styl (wspólny)
+          prefixColor: getPrefixSuffixColor(),
+          suffixColor: getPrefixSuffixColor(),
+          prefixFontSize: psFontPx + "px",
+          suffixFontSize: psFontPx + "px",
+
+          // fillery
+          prefixIndex, suffixIndex,
+
+          // tekst
+          text: isClear ? "" : (el.message.value || ""),
+
+          // meta
+          nonce: nonce(),
+          ts: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge:false });
+
+        setStatus(isClear ? "wyczyszczono" : "wysłano");
+      }catch(e){
+        console.error(e);
+        setStatus("BŁĄD");
+        alert("Błąd zapisu:\n\n" + (e?.message || e));
+      }
+      computePreview();
+    }
+
+    async function ping(){
+      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 28);
+      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 14);
+
+      setStatus("ping…");
+      try{
+        await currentRef.set({
+          type:"ping",
+          faction: el.faction.value,
+
+          // zachowujemy też styl, żeby po pingach nie „gubić” ustawień po stronie infoczytnika
+          color: el.fontColor.value || "#00ff66",
+          fontColor: el.fontColor.value || "#00ff66",
+          msgFontSize: msgFontPx + "px",
+          prefixColor: getPrefixSuffixColor(),
+          suffixColor: getPrefixSuffixColor(),
+          prefixFontSize: psFontPx + "px",
+          suffixFontSize: psFontPx + "px",
+
+          nonce: nonce(),
+          ts: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge:true });
+
+        setStatus("ping wysłany");
+      }catch(e){
+        console.error(e);
+        setStatus("BŁĄD ping");
+        alert("Błąd ping:\n\n" + (e?.message || e));
+      }
+    }
+
+    // ====== EVENTY ======
+    el.sendBtn.addEventListener("click", () => sendMessage(false));
+    el.clearBtn.addEventListener("click", () => sendMessage(true));
+    el.pingBtn.addEventListener("click", ping);
+
+    el.clearTextBtn.addEventListener("click", () => {
+      el.message.value = "";
+      el.message.focus();
     });
-  }
 
-  // ===== Persist (localStorage) =====
-  const LS_KEY = "wh40k_dataslate_gm_state_v2";
-  function saveState(){
-    const state = {
-      faction: el.faction.value,
-      msgColor: el.msgColor.value,
-      msgSize: el.msgSize.value,
-      psColor: el.psColor.value,
-      psSize: el.psSize.value,
-      randomFillers: el.randomFillers.checked,
-      manualPrefix: el.manualPrefix.value,
-      manualSuffix: el.manualSuffix.value,
-      text: el.text.value,
-      useDefaultPing: el.useDefaultPing.checked,
-      useDefaultMsg: el.useDefaultMsg.checked,
-      defaultPingUrl: el.defaultPingUrl.value,
-      defaultMsgUrl: el.defaultMsgUrl.value,
-      factionPingUrl: el.factionPingUrl.value,
-      factionMsgUrl: el.factionMsgUrl.value
-    };
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
-  }
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(!raw) return;
-      const s = JSON.parse(raw);
+    // chips (dla msg i ps)
+    el.chips.forEach(ch => ch.addEventListener("click", () => {
+      const target = ch.getAttribute("data-target");
+      const c = ch.getAttribute("data-color");
+      if(!c) return;
 
-      if(s.faction) el.faction.value = s.faction;
-      if(s.msgColor) el.msgColor.value = s.msgColor;
-      if(s.msgSize) el.msgSize.value = s.msgSize;
-      if(s.psColor) el.psColor.value = s.psColor;
-      if(s.psSize) el.psSize.value = s.psSize;
+      if(target === "msg"){
+        el.fontColor.value = c;
+      }else if(target === "ps"){
+        el.psColorText.value = c;
+        // jeśli da się, zsynchronizuj picker (tylko dla hex)
+        if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c)){
+          el.psColorPicker.value = c.length===4 ? ("#" + c[1]+c[1]+c[2]+c[2]+c[3]+c[3]) : c;
+        }
+      }
+    }));
 
-      if(typeof s.randomFillers === "boolean") el.randomFillers.checked = s.randomFillers;
-      if(s.manualPrefix) el.manualPrefix.value = s.manualPrefix;
-      if(s.manualSuffix) el.manualSuffix.value = s.manualSuffix;
-      if(typeof s.text === "string") el.text.value = s.text;
+    // picker prefix/suffix -> ustawia tekst na #RRGGBB
+    el.psColorPicker.addEventListener("input", () => {
+      el.psColorText.value = el.psColorPicker.value;
+    });
 
-      if(typeof s.useDefaultPing === "boolean") el.useDefaultPing.checked = s.useDefaultPing;
-      if(typeof s.useDefaultMsg === "boolean") el.useDefaultMsg.checked = s.useDefaultMsg;
-      if(s.defaultPingUrl) el.defaultPingUrl.value = s.defaultPingUrl;
-      if(s.defaultMsgUrl) el.defaultMsgUrl.value = s.defaultMsgUrl;
-      if(typeof s.factionPingUrl === "string") el.factionPingUrl.value = s.factionPingUrl;
-      if(typeof s.factionMsgUrl === "string") el.factionMsgUrl.value = s.factionMsgUrl;
-    }catch(e){}
-  }
+    ["change","input"].forEach(evt=>{
+      el.faction.addEventListener(evt, computePreview);
+      el.randomFillers.addEventListener(evt, computePreview);
+      el.prefixIndex.addEventListener(evt, computePreview);
+      el.suffixIndex.addEventListener(evt, computePreview);
+    });
 
-  // ===== Firestore: config audio =====
-  async function ensureConfigDoc(){
-    const snap = await getDoc(configRef);
-    if(!snap.exists()){
-      await setDoc(configRef, {
-        defaults: {
-          pingUrl: el.defaultPingUrl.value || "assets/audio/global/Ping.mp3",
-          msgUrl:  el.defaultMsgUrl.value  || "assets/audio/global/Message.mp3",
-        },
-        perFaction: {}
-      }, {merge:true});
-    }
-  }
-
-  async function saveAudioConfig(){
-    await ensureConfigDoc();
-
-    const faction = el.faction.value;
-    const defaults = {
-      pingUrl: el.defaultPingUrl.value.trim() || "assets/audio/global/Ping.mp3",
-      msgUrl:  el.defaultMsgUrl.value.trim()  || "assets/audio/global/Message.mp3",
-    };
-
-    const perFaction = {};
-    perFaction[faction] = {
-      pingUrl: el.useDefaultPing.checked ? "" : (el.factionPingUrl.value.trim() || ""),
-      msgUrl:  el.useDefaultMsg.checked  ? "" : (el.factionMsgUrl.value.trim() || "")
-    };
-
-    await setDoc(configRef, { defaults, perFaction }, { merge:true });
-    setStatus(`✅ Zapisano audio w dataslate/config (defaults + ${faction}).`);
-  }
-
-  // ===== Build payload for message =====
-  function buildStylePayload(){
-    // wiadomość: msgFontSize
-    const msgPx = Number(el.msgSize.value || 28);
-    const msgFontSize = `${Math.max(12, Math.min(80, Math.floor(msgPx)))}px`;
-
-    // prefix/suffix: wspólne
-    const psPx = Number(el.psSize.value || 14);
-    const psFontSize = `${Math.max(10, Math.min(60, Math.floor(psPx)))}px`;
-
-    // Kolory
-    const msgColor = (el.msgColor.value || "#00ff66").trim();
-    const psColor  = (el.psColor.value  || "rgba(255,255,255,.88)").trim();
-
-    return {
-      color: msgColor,
-      msgFontSize: msgFontSize,
-      prefixFontSize: psFontSize,
-      suffixFontSize: psFontSize,
-      prefixColor: psColor,
-      suffixColor: psColor
-    };
-  }
-
-  function pickPrefixSuffixForSend(){
-    const faction = el.faction.value;
-    const f = getFactionFillers(faction);
-
-    if(el.randomFillers.checked){
-      return {
-        prefixIndex: rand1to(f.prefixes.length),
-        suffixIndex: rand1to(f.suffixes.length)
-      };
-    }
-    return {
-      prefixIndex: clampIndex(el.manualPrefix.value, f.prefixes.length),
-      suffixIndex: clampIndex(el.manualSuffix.value, f.suffixes.length)
-    };
-  }
-
-  // ===== Send actions =====
-  async function sendMessage(){
-    const faction = el.faction.value;
-    const text = el.text.value ?? "";
-
-    const style = buildStylePayload();
-    const pick = pickPrefixSuffixForSend();
-
-    // audio urls w payloadzie: odczyta Infoczytnik (z config i/lub z payloadu),
-    // zostawiamy prosto: wysyłamy tylko jeśli chcesz wymusić per wiadomość
-    const payload = {
-      type: "message",
-      faction,
-      text,
-      ...pick,
-      ...style,
-      nonce: `${Date.now()}-${Math.random().toString().slice(2)}`,
-      sentAt: serverTimestamp()
-    };
-
-    await setDoc(currentRef, payload, { merge:true });
-    setStatus(`📨 Wysłano wiadomość (${faction}).`);
-    updatePreviews(); // po wysyłce (szczególnie gdy losowanie) odśwież podgląd
-  }
-
-  async function clearScreen(){
-    const faction = el.faction.value;
-    const style = buildStylePayload();
-
-    await setDoc(currentRef, {
-      type: "clear",
-      faction,
-      ...style,
-      nonce: `${Date.now()}-${Math.random().toString().slice(2)}`,
-      sentAt: serverTimestamp()
-    }, { merge:true });
-
-    setStatus("🧹 Wysłano: wyczyść ekran (Infoczytnik).");
-  }
-
-  async function doPing(){
-    const faction = el.faction.value;
-    const style = buildStylePayload();
-
-    // Ping URL: bierzemy domyślny lub frakcyjny zależnie od checkboxa i pola
-    const pingUrl = el.useDefaultPing.checked ? (el.defaultPingUrl.value.trim() || "assets/audio/global/Ping.mp3")
-                                              : (el.factionPingUrl.value.trim() || (el.defaultPingUrl.value.trim() || "assets/audio/global/Ping.mp3"));
-
-    await setDoc(currentRef, {
-      type: "ping",
-      faction,
-      pingUrl,
-      ...style,
-      nonce: `${Date.now()}-${Math.random().toString().slice(2)}`,
-      sentAt: serverTimestamp()
-    }, { merge:true });
-
-    setStatus(`📡 Ping wysłany (${faction}).`);
-  }
-
-  // ===== Wiring =====
-  wireQuickColors(el.msgQuick, el.msgColor);
-  wireQuickColors(el.psQuick, el.psColor);
-
-  el.randomFillers.addEventListener("change", ()=>{ updateManualEnabled(); updatePreviews(); saveState(); });
-  el.manualPrefix.addEventListener("input", ()=>{ updatePreviews(); saveState(); });
-  el.manualSuffix.addEventListener("input", ()=>{ updatePreviews(); saveState(); });
-  el.faction.addEventListener("change", ()=>{ updatePreviews(); saveState(); });
-
-  el.msgColor.addEventListener("input", saveState);
-  el.msgSize.addEventListener("input", saveState);
-  el.psColor.addEventListener("input", saveState);
-  el.psSize.addEventListener("input", saveState);
-
-  el.useDefaultPing.addEventListener("change", ()=>{ updateAudioEnabled(); saveState(); });
-  el.useDefaultMsg.addEventListener("change", ()=>{ updateAudioEnabled(); saveState(); });
-
-  el.defaultPingUrl.addEventListener("input", saveState);
-  el.defaultMsgUrl.addEventListener("input", saveState);
-  el.factionPingUrl.addEventListener("input", saveState);
-  el.factionMsgUrl.addEventListener("input", saveState);
-
-  el.saveAudio.addEventListener("click", async ()=>{
-    try{ await saveAudioConfig(); }
-    catch(e){ setStatus("❌ Błąd zapisu audio: " + (e?.message || e)); }
-  });
-
-  el.ping.addEventListener("click", async ()=>{
-    try{ await doPing(); }
-    catch(e){ setStatus("❌ Błąd Ping: " + (e?.message || e)); }
-  });
-
-  el.send.addEventListener("click", async ()=>{
-    try{ await sendMessage(); }
-    catch(e){ setStatus("❌ Błąd wysyłki: " + (e?.message || e)); }
-  });
-
-  el.clearScreen.addEventListener("click", async ()=>{
-    try{ await clearScreen(); }
-    catch(e){ setStatus("❌ Błąd czyszczenia: " + (e?.message || e)); }
-  });
-
-  el.clearText.addEventListener("click", ()=>{
-    el.text.value = "";
-    saveState();
-    setStatus("🧽 Wyczyściłeś pole tekstowe (lokalnie w GM).");
-  });
-
-  // init
-  loadState();
-  updateManualEnabled();
-  updateAudioEnabled();
-  updatePreviews();
-  setStatus("Gotowe.");
-</script>
+    setStatus("gotowe");
+    computePreview();
+  </script>
 </body>
 </html>
