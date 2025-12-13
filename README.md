@@ -1,857 +1,584 @@
-SETUP (TL;DR):
-1) Copy config/firebase-config.template.js → config/firebase-config.js
-2) Paste your firebaseConfig from Firebase Console into config/firebase-config.js
-3) Enable Firestore in Firebase (test mode is OK for start)
-4) Enable GitHub Pages (Settings → Pages)
-5) Open:
-   - GM.html
-   - Infoczytnik.html
-6) Click once in Infoczytnik to unlock audio.
+# WH40k Data-Slate (GM + Infoczytnik)
+**Wersja:** 2025-12-13  
+**Hosting:** GitHub Pages  
+**Synchronizacja:** Firebase Firestore (`dataslate/current`)
 
-===========================================================
+---
 
-WH40k Data-Slate (GM + Infoczytnik)
-Dokumentacja / Instrukcja (PL)
-Wersja: 2025-12-13
-Repo: wh40k-data-slate (GitHub Pages)
+## TL;DR — Setup
+1) Skopiuj `config/firebase-config.template.js` → `config/firebase-config.js`  
+2) Wklej swój config Firebase do `config/firebase-config.js`  
+3) W Firebase włącz **Firestore Database** (na start może być *Test mode*)  
+4) Włącz GitHub Pages (Repo → **Settings → Pages**)  
+5) Otwórz:
+- `GM.html`
+- `Infoczytnik.html`
+6) W Infoczytniku kliknij raz ekran, żeby odblokować dźwięk
 
-============================================================
-1) OPIS W 2 ZDANIACH
-============================================================
-To prosta aplikacja webowa składająca się z dwóch stron:
-- GM.html — panel dla Mistrza Gry do wysyłania komunikatów, pingów i sterowania wyglądem.
-- Infoczytnik.html — ekran dla graczy (tablet/laptop), który wyświetla wiadomość na tle wybranego layoutu oraz odtwarza dźwięki.
+---
 
-Synchronizacja działa w czasie rzeczywistym przez Firebase Firestore (dokument: dataslate/current).
+# 🇵🇱 Dokumentacja (PL)
 
-============================================================
-2) JAK TO DZIAŁA — PERSPEKTYWA UŻYTKOWNIKA (KROK PO KROKU)
-============================================================
+## 1) Opis w 2 zdaniach
+To prosta aplikacja webowa z 2 stronami:
+- **GM.html** — panel dla Mistrza Gry do wysyłania wiadomości/pingów i ustawiania wyglądu.
+- **Infoczytnik.html** — ekran dla graczy (tablet/laptop), który wyświetla wiadomość na tle layoutu i odtwarza dźwięki.
 
-2.1. Wymagania
-- Dowolny nowoczesny Chrome (na laptopie i/lub tablecie).
-- Dostęp do internetu (Firebase + Google Fonts; same PNG/MP3 są z GitHub Pages).
-- Obie strony mogą działać na tym samym urządzeniu w dwóch kartach lub na dwóch różnych urządzeniach.
+Wszystko synchronizuje się w czasie rzeczywistym przez **Firebase Firestore** (dokument: `dataslate/current`).
 
-2.2. Uruchomienie
-1) Otwórz panel GM:
-   - Wejdź na stronę GM (GitHub Pages) i otwórz GM.html.
-2) Otwórz Infoczytnik:
-   - W drugiej karcie (lub na tablecie) otwórz Infoczytnik.html.
-3) Odblokuj dźwięk w Infoczytniku:
-   - Po wejściu w Infoczytnik pojawi się nakładka „Kliknij raz, aby odblokować dźwięk”.
-   - Kliknij w dowolne miejsce na nakładce (Chrome blokuje audio bez interakcji użytkownika).
-   - To trzeba wykonać 1x po odświeżeniu strony.
+---
 
-Uwaga:
-- Infoczytnik po uruchomieniu może pokazać ostatnio wysłaną wiadomość (to jest OK i akceptowane).
+## 2) Instrukcja użytkownika (krok po kroku)
 
-2.3. Wysyłanie wiadomości (GM → Infoczytnik)
-1) W GM wybierz „Frakcja / layout”.
-2) Ustaw styl treści wiadomości:
-   - „Kolor fontu (treść wiadomości)” — wybierz z picker’a lub z szybkich kolorów (Zielony/Czerwony/Złoty/Biały).
-   - „Wielkość fontu (treść wiadomości)” — wpisz rozmiar w px (np. 28).
-3) Ustaw styl Prefix + Suffix:
-   - „Kolor Prefix + Suffix (wspólny)”:
-     - Możesz wpisać w polu tekstowym np. #ffffff albo rgba(255,255,255,.88),
-     - albo użyć picker’a (ustawia #RRGGBB),
-     - albo użyć szybkich kolorów (Zielony/Czerwony/Złoty/Biały).
-   - „Wielkość fontu Prefix + Suffix (wspólna)” — w px (np. 14).
-4) Ustaw prefix/suffix (fillery):
-   - Zaznaczone „Losuj automatycznie”:
-     - GM losuje prefix i suffix z listy dla danej frakcji.
-     - Podgląd prefixu i suffixu aktualizuje się automatycznie.
-   - Odznaczone „Losuj automatycznie”:
-     - Wpisujesz ręcznie numer Prefix (po lewej) i Suffix (po prawej).
-     - Podgląd prefixu i suffixu zmieni się po zmianie wartości.
-5) Wpisz „Treść komunikatu” (textarea).
-6) Kliknij „Wyślij”.
-Efekt:
-- Infoczytnik zmienia layout na odpowiedni dla frakcji.
-- Ustawia font (z Google Fonts + fallback do Calibri/Arial).
-- Ustawia kolory i rozmiary według ustawień z GM.
-- Wyświetla prefix + logo (dla wybranych frakcji) + treść + suffix.
-- Odtwarza dźwięk Message (MP3).
+### 2.1 Wymagania
+- Nowoczesna przeglądarka (Chrome / Chromium rekomendowane).
+- Internet (Firebase + Google Fonts; assety PNG/MP3 są z GitHub Pages).
+- GM i Infoczytnik mogą działać:
+  - na jednym urządzeniu (2 karty), albo
+  - na dwóch urządzeniach (np. laptop GM + tablet graczy).
 
-2.4. Ping (GM → Infoczytnik)
-1) Kliknij „Ping”.
-Efekt:
-- Infoczytnik dostaje sygnał ping i odtwarza dźwięk Ping (MP3).
-- Dodatkowo wysyłane są ustawienia stylu (kolory/rozmiary), żeby Infoczytnik nie „gubił” wyglądu.
+---
 
-2.5. Wyczyść ekran (GM → Infoczytnik)
-1) Kliknij „Wyczyść ekran”.
-Efekt:
-- Infoczytnik usuwa prefix, treść i suffix, ale zostawia tło layoutu.
+### 2.2 Uruchomienie
+1) Otwórz panel GM: `GM.html`  
+2) Otwórz Infoczytnik: `Infoczytnik.html`  
+3) Infoczytnik pokaże overlay:
+   **„Kliknij raz, aby odblokować dźwięk”**  
+   Kliknij w overlay (to wymóg przeglądarki — inaczej audio nie ruszy).
 
-2.6. Wyczyść pole (tylko GM)
-1) Kliknij „Wyczyść pole”.
-Efekt:
-- Czyści wyłącznie pole tekstowe w GM (textarea), nic nie wysyła do Infoczytnika.
+> Po odświeżeniu strony Infoczytnika trzeba kliknąć ponownie.
 
-2.7. Podgląd prefix/suffix (GM)
-- Nad polem „Treść komunikatu” jest podgląd prefixu (ramka preview).
-- Pod polem „Treść komunikatu” jest podgląd suffixu (ramka preview).
-- Podgląd jest tylko do odczytu, a zmiana odbywa się przez losowanie lub numer ręczny.
+---
 
-============================================================
-3) JAK TO DZIAŁA — TECHNICZNIE (KOD, SKRYPTY, FIREBASE)
-============================================================
+### 2.3 Wysyłanie wiadomości (GM → Infoczytnik)
+1) W GM wybierz **Frakcja / layout**.  
+2) Ustaw **styl treści wiadomości**:
+   - **Kolor fontu (treść wiadomości)** — picker lub szybkie kolory (Zielony/Czerwony/Złoty/Biały)
+   - **Wielkość fontu (treść wiadomości)** — w px (np. 28)
+3) Ustaw **styl Prefix + Suffix**:
+   - **Kolor Prefix + Suffix (wspólny)** — wpisz `#ffffff` albo `rgba(...)` lub użyj pickera / szybkich kolorów
+   - **Wielkość fontu Prefix + Suffix (wspólna)** — w px (np. 14)
+4) Prefix/Suffix (fillery):
+   - Zaznaczone **Losuj automatycznie** → GM losuje prefix i suffix
+   - Odznaczone → wpisujesz ręcznie numer Prefix (lewa strona) i Suffix (prawa strona)
+5) Wpisz **Treść komunikatu**.  
+6) Kliknij **Wyślij**.
 
-3.1. Struktura aplikacji (logika)
-Są 2 niezależne strony HTML:
-- GM.html:
-  - UI + logika wyboru frakcji, kolorów, rozmiarów, losowania prefix/suffix.
-  - Zapisuje stan do Firestore: dataslate/current.
-- Infoczytnik.html:
-  - Nasłuchuje Firestore: dataslate/current (real-time).
-  - Na podstawie danych z dokumentu aktualizuje:
-    - layout (tło PNG),
-    - font frakcji,
-    - kolory i rozmiary tekstów,
-    - prefix/suffix (z tekstu lub indeksów),
-    - logo frakcji (opcjonalnie),
-    - dźwięk (Ping/Message),
-    - czyszczenie ekranu.
+Efekt w Infoczytniku:
+- zmienia się layout i font frakcji,
+- ustawiają się kolory i rozmiary,
+- wyświetla się prefix + (opcjonalnie logo) + treść + suffix,
+- odtwarza się dźwięk **Message**.
 
-3.2. Firebase / Firestore — kluczowa część
-Używamy Firebase Firestore jako „kanału komunikacji” w czasie rzeczywistym.
-Najważniejszy element:
-- Kolekcja: dataslate
-- Dokument: current
-- Ścieżka: dataslate/current
+---
 
-GM wykonuje currentRef.set(...).
-Infoczytnik wykonuje onSnapshot(currentRef, callback).
+### 2.4 Ping (GM → Infoczytnik)
+1) Kliknij **Ping**.  
+Efekt: Infoczytnik odtwarza dźwięk **Ping** (bez zmiany tekstu).
 
-To działa jak „wspólny notatnik”:
-- Każde kliknięcie w GM zapisuje nowy stan dokumentu.
-- Infoczytnik natychmiast dostaje zmianę przez onSnapshot.
+---
 
-3.3. Pola w dokumencie dataslate/current (kontrakt danych)
+### 2.5 Wyczyść ekran (GM → Infoczytnik)
+1) Kliknij **Wyczyść ekran**.  
+Efekt: znika prefix/treść/suffix, ale tło zostaje.
+
+---
+
+### 2.6 Wyczyść pole (tylko GM)
+1) Kliknij **Wyczyść pole**.  
+Efekt: czyści tylko textarea w GM, nic nie wysyła.
+
+---
+
+## 3) Jak to działa (technicznie)
+
+### 3.1 Architektura
+Są 2 niezależne strony:
+- **GM.html** zapisuje stan do Firestore
+- **Infoczytnik.html** nasłuchuje Firestore i aktualizuje ekran
+
+Kanał synchronizacji:
+- Kolekcja: `dataslate`
+- Dokument: `current`
+- Ścieżka: `dataslate/current`
+
+---
+
+### 3.2 Firebase config — plik `config/firebase-config.js`
+W repo jest template:
+
+`config/firebase-config.template.js`  
+Skopiuj jako:
+
+`config/firebase-config.js`
+
+i wklej:
+
+```js
+window.firebaseConfig = {
+  apiKey: "…",
+  authDomain: "…",
+  projectId: "…",
+  storageBucket: "…",
+  messagingSenderId: "…",
+  appId: "…"
+};
+
+GM.html ładuje config jako zwykły <script> i korzysta z window.firebaseConfig.
+Infoczytnik.html też ładuje config jako <script> i korzysta z window.firebaseConfig.
+
+3.3 Kontrakt danych w Firestore (dataslate/current)
+
 Najważniejsze pola:
 
-A) Sterowanie typem zdarzenia
-- type: "message" | "ping" | "clear"
+A) Typ zdarzenia
 
-B) Meta / anty-dublowanie
-- nonce: losowy identyfikator zdarzenia
-- ts: serverTimestamp()
+type: "message" | "ping" | "clear"
 
-Infoczytnik trzyma lastNonce i ignoruje powtórzenia.
+B) Dedup / meta
 
-C) Wygląd i treść
-- faction: np. "mechanicus", "inquisition"…
-- text: treść wiadomości (dla type="message")
-- color / fontColor: kolor treści wiadomości (hex)
+nonce: unikalny identyfikator zdarzenia (zapobiega ponownemu odtworzeniu)
 
-D) Prefix/Suffix (dwa tryby)
-- prefixIndex / suffixIndex (1..N) — wybór z list fillerów po stronie Infoczytnika
-ALBO (opcjonalnie w przyszłości):
-- prefix / suffix (gotowy tekst)
+ts: serverTimestamp()
 
-E) Styl fontów (z GM)
-- msgFontSize: np. "28px"
-- prefixFontSize: np. "14px"
-- suffixFontSize: np. "14px"
-- prefixColor: np. "#ffffff" lub "rgba(...)"
-- suffixColor: jw.
+C) Treść i wygląd
+
+faction: np. mechanicus, inquisition…
+
+text: treść wiadomości
+
+color / fontColor: kolor treści (hex)
+
+msgFontSize: np. "28px"
+
+D) Fillery
+
+prefixIndex, suffixIndex (1..N)
+
+(opcjonalnie w przyszłości) prefix, suffix jako gotowe teksty
+
+E) Styl prefix/suffix
+
+prefixColor, suffixColor (np. #fff lub rgba(...))
+
+prefixFontSize, suffixFontSize (np. "14px")
 
 F) Audio (opcjonalne)
-- pingUrl (jeśli kiedyś będziesz nadpisywać globalny ping)
-- msgUrl / messageUrl (jeśli kiedyś będziesz nadpisywać globalny message)
 
-Aktualnie Infoczytnik domyślnie korzysta z:
+pingUrl
+
+msgUrl / messageUrl
+
+Domyślnie Infoczytnik używa:
+
 assets/audio/global/Ping.mp3
+
 assets/audio/global/Message.mp3
 
-3.4. GM.html — co robi kod
-GM:
-- Definiuje listy fillerów (LAYOUTS) dla frakcji:
-  LAYOUTS[frakcja].prefixes[]
-  LAYOUTS[frakcja].suffixes[]
-- Funkcja computePreview():
-  - Wylicza bieżący prefix/suffix:
-    - losowo, gdy randomFillers checked,
-    - albo według numeru, gdy randomFillers odznaczony.
-  - Uzupełnia podglądy prefixPreview i suffixPreview.
-  - Blokuje/odblokowuje pola ręczne (disabled) gdy losowanie włączone.
+3.4 GM.html — co robi kod
 
-- Funkcja sendMessage(isClear):
-  - Składa paczkę danych do Firestore:
-    - type = "message" lub "clear"
-    - faction, color/fontColor
-    - msgFontSize, prefix/suffix style
-    - prefixIndex, suffixIndex
-    - text
-    - nonce, ts
-  - Wysyła przez currentRef.set(..., { merge:false })
+Trzyma listy fillerów dla frakcji w obiekcie LAYOUTS.
 
-- Funkcja ping():
-  - Zapisuje type="ping" + nonce + (merge:true)
-  - Dodatkowo dokleja style, żeby utrzymać spójny wygląd po stronie Infoczytnika.
+computePreview():
 
-3.5. Infoczytnik.html — co robi kod
-Infoczytnik:
-- Ładuje fonty Google Fonts (z fallbackiem do Calibri/Arial).
-- Definiuje CSS zmienne (variables) do wyglądu:
-  --accent, --font
-  --screen-top/right/bottom/left (bezpieczne marginesy)
-  --msg-font-size, --prefix-font-size, --suffix-font-size
-  --prefix-color, --suffix-color
+losuje lub wybiera indeksy,
 
-- Layout i pole tekstu:
-  - Tło (layout) jest <img class="layout-img"> z object-fit: contain.
-  - Na nim leży przez absolute-position element .screen,
-    czyli „bezpieczny obszar” na tekst.
-  - To .screen ma overflow:auto => przewijanie tylko w tym obszarze.
-  - Tło się nie rusza, przewija się tylko tekst.
+pokazuje preview prefix/suffix,
 
-- Wyliczanie „bezpiecznego pola” na tekst:
-  Zrobione przez zestaw wartości procentowych:
-    --screen-top, --screen-right, --screen-bottom, --screen-left
+blokuje ręczne pola gdy losowanie włączone.
 
-  Dlaczego procenty?
-  - Ponieważ panel ma zmienny rozmiar na różnych urządzeniach,
-    a tło jest skalowane proporcjonalnie.
-  - Procenty powodują, że obszar tekstu skaluje się wraz z tłem.
+sendMessage(isClear):
 
-  Jak zostało dobrane?
-  - Metoda praktyczna: patrzymy na PNG i przyjmujemy „zapas” tak,
-    żeby tekst nie nachodził na ozdobne elementy ramki.
-  - Dla DataSlate_Inq.png ramka jest inna (cieńsza) — osobny preset.
-  - Dla DataSlate_04.png ramka jest grubsza — osobny preset.
-  - Presety są w SCREEN_INSETS:
-      inquisition: {top:"14%", right:"14%", bottom:"26%", left:"18%"}
-      default04:   {top:"14%", right:"14%", bottom:"22%", left:"18%"}
-  To jest celowo konserwatywne (większy margines), żeby było bezpiecznie.
+zapisuje do dataslate/current pełny stan (type, faction, style, indeksy, text, nonce).
 
-- Dopasowanie rozmiaru panelu do ekranu:
-  Funkcja fitPanel(ar):
-    - bierze aspect ratio layoutu (AR),
-    - wylicza maksymalny rozmiar panelu tak, by mieścił się w viewport (vw/vh),
-    - ustawia panel.style.width/height.
-  AR jest w LAYOUT_AR:
-    inquisition: 707/1023
-    default04:   1131/1600
+ping():
 
-- Nasłuch Firestore:
-  onSnapshot(doc(db,"dataslate","current"), callback)
+zapisuje type=ping,
 
-  callback:
-  1) sprawdza nonce (żeby nie odtwarzać tego samego eventu ponownie)
-  2) wyciąga faction i color
-  3) applyLayout(faction,color) — zmienia tło i font frakcji, ustawia insets i AR
-  4) applyTextStyleFromDoc(d) — ustawia CSS zmienne rozmiarów i kolorów
-  5) reaguje na type:
-     - clear: czyści teksty, zostawia tło
-     - ping: odtwarza Ping
-     - message: buduje prefix/suffix (z tekstu lub indeksów) i wyświetla, odtwarza Message
+też wysyła style, żeby Infoczytnik nie „gubił” wyglądu.
 
-- Fillery po stronie Infoczytnika:
-  FILLERS zawiera listy prefix/suffix (dla mechanicus i inquisition itd).
-  Jeśli GM wysyła prefixIndex/suffixIndex, Infoczytnik wybiera z listy.
-  Jeśli brak — bierze domyślnie 1.
+3.5 Infoczytnik.html — co robi kod
 
-- Logo frakcji:
-  FACTION_LOGO mapuje:
-    inquisition → assets/logos/inquisition/Inquisition.png
-    mechanicus  → assets/logos/mechanicus/Mechanicus.png
-  Logo ma stały kontener logoBox (54x54) i object-fit: contain (bez deformacji).
-  Logo jest po prawej od prefixu i przewija się razem z prefixem, bo jest w tej samej .screen.
+Renderuje tło layoutu jako <img> z object-fit: contain.
 
-3.6. Audio — dlaczego był „klik do odblokowania”
-Chrome (i większość przeglądarek) blokuje automatyczne odtwarzanie dźwięku,
-dopóki użytkownik nie wykona akcji w tej karcie (klik/klawisz).
-Dlatego Infoczytnik ma overlay unlock, który po kliknięciu ustawia audioArmed=true.
+Warstwa .screen leży na obrazie i jest „bezpiecznym polem” na tekst.
 
-============================================================
-4) ZASOBY (ASSETS) I CACHE / WERSJONOWANIE
-============================================================
+Bezpieczne pole jest wyznaczone procentami:
 
-4.1. Zasoby w repo (przykład)
-- assets/audio/global/Ping.mp3
-- assets/audio/global/Message.mp3
-- assets/layouts/inquisition/DataSlate_Inq.png
-- assets/layouts/<faction>/DataSlate_04.png (tymczasowo)
-- assets/logos/inquisition/Inquisition.png
-- assets/logos/mechanicus/Mechanicus.png
+--screen-top/right/bottom/left
+Dzięki temu obszar skaluje się razem z layoutem na różnych ekranach.
 
-4.2. ASSET_VERSION (cache-busting)
-W Infoczytniku jest stała:
-ASSET_VERSION = "2025-12-13-1";
+fitPanel(ar) dopasowuje rozmiar panelu do ekranu, zachowując aspect ratio.
 
-Każdy asset jest ładowany z dopiskiem:
-...?v=ASSET_VERSION
+onSnapshot() nasłuchuje dataslate/current:
 
-Po co?
-- GitHub Pages + Chrome potrafią trzymać stary obrazek/audio w cache.
-- Zmiana ASSET_VERSION wymusza pobranie nowej wersji.
+ignoruje duplikaty po nonce,
 
-Kiedy zmieniać?
-- Gdy podmienisz PNG lub MP3 i urządzenia dalej widzą starą wersję.
-- Najprościej: zwiększ numer na końcu, np. "2025-12-13-2".
+ustawia layout/font/kolory/rozmiary,
 
-============================================================
-5) JAK ROZWIJAĆ APLIKACJĘ (DOKŁADNE PROCEDURY)
-============================================================
+reaguje na type:
 
-5.1. Dodawanie nowych plików audio (globalnie)
-Cel: podmienić Ping.mp3 i/lub Message.mp3.
+clear → czyści tekst
 
-Kroki:
-1) W repo wrzuć nowe pliki do:
-   assets/audio/global/
-   i nazwij:
-   - Ping.mp3
-   - Message.mp3
-   (najprościej: nadpisz istniejące)
+ping → odtwarza dźwięk Ping
 
-2) Zacommituj zmiany.
+message → składa prefix/suffix i wyświetla + odtwarza Message
 
-3) W Infoczytniku zwiększ ASSET_VERSION, np.:
-   "2025-12-13-2"
-   Zacommituj.
+3.6 Dlaczego jest „Kliknij raz, aby odblokować dźwięk”
 
-4) Odśwież Infoczytnik hard refresh (Ctrl+Shift+R).
-   Jeśli tablet trzyma cache: dopisz do URL Infoczytnika ?v=123 lub zmień ASSET_VERSION.
+Chrome i inne przeglądarki blokują autoplay audio, dopóki użytkownik nie wykona akcji.
+Infoczytnik ma overlay, który po kliknięciu:
 
-5.2. Dodawanie osobnych dźwięków dla frakcji (przyszłość)
-Założenie:
-- Każda frakcja może mieć własny Ping i Message.
+chowa overlay,
 
-Proponowana struktura:
-assets/audio/factions/<faction>/Ping.mp3
-assets/audio/factions/<faction>/Message.mp3
+uzbraja audio,
 
-Zmiany w kodzie (koncepcja):
-- W Infoczytniku dodać mapę:
-  FACTION_AUDIO = { mechanicus:{ping:"...", msg:"..."}, ... }
-- W obsłudze ping/message wybierać:
-  - jeśli istnieje FACTION_AUDIO[faction] → użyj go,
-  - w przeciwnym wypadku → DEFAULT_*.
+od tego momentu można odtwarzać MP3.
 
-Alternatywa:
-- Z GM wysyłać pingUrl/msgUrl zależnie od frakcji (już jest wspierane w Infoczytniku),
-  wtedy GM „decyduje” jaki dźwięk zagra.
+4) Zasoby i cache (ważne na tabletach)
+4.1 Struktura assets
 
-5.3. Dodawanie nowej frakcji
-To wymaga zmian w 2 plikach: GM.html i Infoczytnik.html.
+assets/audio/global/Ping.mp3
 
-A) GM.html
-1) Dodaj <option> w select#faction:
-   <option value="new_faction">Nazwa frakcji</option>
+assets/audio/global/Message.mp3
 
-2) Dodaj wpis do LAYOUTS:
-   LAYOUTS.new_faction = { prefixes:[...], suffixes:[...] }
+assets/layouts/<faction>/...png
 
-B) Infoczytnik.html
-1) Dodaj tło layoutu:
-   - wrzuć PNG do assets/layouts/new_faction/...
-2) Dodaj mapowanie w LAYOUT_BG:
-   new_faction: `assets/layouts/new_faction/<plik>.png?v=${ASSET_VERSION}`
-3) Jeśli layout ma inny AR:
-   - dodaj do LAYOUT_AR i ustaw w applyLayout warunek podobnie jak inquisition.
-4) Jeśli layout wymaga innych marginesów:
-   - dodaj preset do SCREEN_INSETS i użyj go w applyLayout.
-5) Dodaj font frakcji (opcjonalnie):
-   - dopisz font do linka Google Fonts (w head)
-   - dopisz FONT_STACK.new_faction = '"NazwaFontu", Calibri, Arial, sans-serif'
-6) Dodaj fillery w FILLERS (opcjonalnie, jeśli GM wysyła tylko index):
-   FILLERS.new_faction = { prefixes:[...], suffixes:[...] }
-7) Dodaj logo (opcjonalnie):
-   - wrzuć PNG do assets/logos/new_faction/Logo.png
-   - dodaj do FACTION_LOGO:
-     new_faction: `assets/logos/new_faction/Logo.png?v=${ASSET_VERSION}`
+assets/logos/<faction>/...png
 
-Na końcu:
-- Zwiększ ASSET_VERSION (jeśli doszły nowe grafiki) i zacommituj.
+4.2 Wersjonowanie assetów (cache-busting)
 
-5.4. Dodawanie nowego layoutu (PNG) i ustawienie „bezpiecznego pola”
-Cel: inny wygląd ramki => trzeba dopasować marginesy.
+Infoczytnik ma stałą:
 
-Kroki:
-1) Wrzuć PNG do:
-   assets/layouts/<faction>/<nazwa>.png
+ASSET_VERSION = "2025-12-13-1" (lub podobną)
 
-2) (Opcjonalnie) zmierz aspect ratio:
-   - AR = szerokość / wysokość (w px).
-   Przykład:
-   707/1023 dla Inkwizycji.
+Do URLi assetów jest dodawane:
 
-3) Ustaw w Infoczytnik:
-   - w LAYOUT_BG wskaż ten plik
-   - w LAYOUT_AR dodaj AR (jeśli inny niż default)
-   - w SCREEN_INSETS dodaj preset marginesów
+...?v=${ASSET_VERSION}
 
-Jak dobrać SCREEN_INSETS (praktyczna metoda):
-- Ustaw tymczasowo bardzo duże marginesy (np. top 20%, left 20%, right 20%, bottom 25%),
-- Wyślij długi tekst z GM,
-- Zmniejszaj marginesy stopniowo, aż tekst będzie “blisko” czarnego pola,
-  ale nadal nie dotyka ozdobnych elementów ramki.
-- Zostaw zapas — tekst nie musi wypełniać całego czarnego obszaru.
+Zmieniaj ASSET_VERSION zawsze, gdy podmienisz PNG/MP3, żeby tablety nie trzymały starej wersji w cache.
 
-Dlaczego to działa stabilnie?
-- Ponieważ panel ma stały AR dopasowany do tła, a marginesy są procentowe,
-  więc „bezpieczne pole” skaluje się idealnie z obrazkiem.
+5) Jak rozwijać aplikację (procedury)
+5.1 Podmiana globalnych dźwięków
 
-5.5. Dodawanie nowego logo (różne rozmiary)
-Kroki:
-1) Wrzuć logo do:
-   assets/logos/<faction>/<nazwa>.png
-2) Dodaj wpis w FACTION_LOGO:
-   <faction>: `assets/logos/<faction>/<nazwa>.png?v=${ASSET_VERSION}`
-3) Zwiększ ASSET_VERSION i zacommituj.
+Nadpisz pliki:
 
-Logo się nie deformuje, bo:
-- kontener ma stały rozmiar,
-- logo ma object-fit: contain.
+assets/audio/global/Ping.mp3
 
-5.6. Zmiany UI w GM (np. nowe kontrolki)
-Zasada:
-- Wszystko co ma wpływać na Infoczytnik musi zostać zapisane do Firestore.
-- Infoczytnik musi te pola odczytać i zastosować w CSS/DOM.
+assets/audio/global/Message.mp3
 
-Wzorzec:
-GM:
-- dodajesz input w HTML,
-- dodajesz go do el = {...},
-- w sendMessage/ping dopisujesz pole do obiektu set(),
-Infoczytnik:
-- w applyTextStyleFromDoc(d) dopisujesz obsługę pola
-  i mapujesz na CSS variable albo bezpośrednią zmianę elementu.
+Commit
 
-============================================================
-6) DIAGNOSTYKA / TROUBLESHOOTING
-============================================================
+Zmień ASSET_VERSION w Infoczytniku
 
-6.1. „Nie widzę zmian na GitHub Pages”
-- Upewnij się, że commit poszedł do repo.
-- Zrób Ctrl+Shift+R.
-- Dopisz do URL ?v=123.
-- Sprawdź, czy otwierasz właściwy plik (GM.html vs index.html).
+Commit
 
-6.2. „Audio nie gra”
-- W Infoczytniku kliknij overlay odblokowania audio.
-- Sprawdź czy pliki MP3 istnieją pod ścieżką assets/audio/global/.
-- Sprawdź czy w konsoli nie ma błędów 404.
+Odśwież (na tabletach czasem trzeba wyczyścić cache / zmienić wersję)
 
-6.3. „Tekst nachodzi na ramkę”
-- Zwiększ marginesy SCREEN_INSETS dla danego layoutu.
-- Upewnij się, że AR jest poprawny.
+5.2 Dodanie nowej frakcji
 
-============================================================
-7) SŁOWNIK / NAZYWNICTWO
-============================================================
-- GM — panel nadawczy (Mistrz Gry)
-- Infoczytnik — ekran odbiorczy (gracze)
-- Layout — tło PNG (ramka Data-Slate)
-- Screen / safe area — bezpieczny obszar na tekst (z marginesami)
-- Fillery — prefixy i suffixy
-- nonce — unikat zdarzenia do ignorowania duplikatów
-- ASSET_VERSION — “cache buster” dla PNG/MP3
+Wymaga zmian w 2 plikach: GM.html i Infoczytnik.html.
 
-============================================================
-8) CHECKLISTA „CO ZMIENIAM, GDY…”
-============================================================
+GM.html
 
-- Podmieniam MP3/PNG:
-  1) wrzuć plik (nadpisz lub dodaj)
-  2) commit
-  3) zwiększ ASSET_VERSION
-  4) commit
-  5) Ctrl+Shift+R / ?v=...
+Dodaj <option value="new_faction">Nazwa</option> w select.
 
-- Dodaję nową frakcję:
-  1) GM: option + LAYOUTS (prefix/suffix)
-  2) Inf: LAYOUT_BG + (opcjonalnie) FONT_STACK + FILLERS + FACTION_LOGO + insets/ar
-  3) assets: layout + logo + (opcjonalnie) audio
-  4) ASSET_VERSION++
+Dodaj wpis w LAYOUTS.new_faction = { prefixes:[...], suffixes:[...] }.
 
-============================================================
-KONIEC DOKUMENTU (PL)
-============================================================
-WH40k Data-Slate (GM + Infoczytnik)
-Documentation / User & Technical Manual (EN)
-Version: 2025-12-13
-Repository: wh40k-data-slate (GitHub Pages)
+Infoczytnik.html
 
-============================================================
-1) SHORT DESCRIPTION
-============================================================
-WH40k Data-Slate is a lightweight web application composed of two pages:
-- GM.html — a control panel for the Game Master to send messages, pings, and control visual style.
-- Infoczytnik.html — a display screen for players (tablet or laptop) that shows messages on a themed Data-Slate layout and plays audio cues.
+Dodaj layout w assets/layouts/new_faction/...png
 
-Both pages are synchronized in real time via Firebase Firestore (document: dataslate/current).
+Dodaj mapowanie w LAYOUT_BG
 
-============================================================
-2) HOW IT WORKS — USER PERSPECTIVE (STEP BY STEP)
-============================================================
+Jeśli layout ma inne proporcje → dodaj AR do LAYOUT_AR i obsłuż w applyLayout()
 
-2.1. Requirements
-- Any modern Chromium-based browser (Chrome recommended).
-- Internet connection (Firebase + Google Fonts; PNG/MP3 assets are served from GitHub Pages).
-- GM and Infoczytnik can run:
-  - on the same device in two browser tabs, or
-  - on two different devices (e.g. GM on laptop, Infoczytnik on tablet).
+Jeśli layout ma inną ramkę → dodaj preset do SCREEN_INSETS i obsłuż w applyLayout()
 
-2.2. Startup
-1) Open the GM panel:
-   - Navigate to the GitHub Pages URL and open GM.html.
-2) Open the Infoczytnik:
-   - In another tab or on another device, open Infoczytnik.html.
-3) Unlock audio on Infoczytnik:
-   - On first load, an overlay appears saying “Click once to unlock audio”.
-   - Click anywhere on the overlay.
-   - This is required because browsers block audio until user interaction.
-   - This must be done once after each page refresh.
+(Opcjonalnie) dodaj font w FONT_STACK i w linku Google Fonts
 
-Note:
-- On startup, Infoczytnik may display the last message sent by the GM.
-  This is intentional and acceptable behavior.
+(Opcjonalnie) dodaj fillery w FILLERS (jeśli Infoczytnik ma je wyliczać po indeksach)
 
-2.3. Sending a Message (GM → Infoczytnik)
-1) In GM, select “Faction / layout”.
-2) Configure message text style:
-   - “Font color (message text)” — choose via color picker or quick presets
-     (Green / Red / Gold / White).
-   - “Font size (message text)” — numeric value in px (e.g. 28).
-3) Configure Prefix + Suffix style:
-   - “Prefix + Suffix color (shared)”:
-     - You may enter values like #ffffff or rgba(255,255,255,.88),
-     - or use the color picker,
-     - or use the same quick color presets.
-   - “Prefix + Suffix font size (shared)” — in px (e.g. 14).
-4) Configure prefix/suffix fillers:
-   - “Randomize automatically” checked:
-     - Prefix and suffix are randomly selected from the faction list.
-     - Live preview updates automatically.
-   - “Randomize automatically” unchecked:
-     - Manually enter Prefix index (left) and Suffix index (right).
-     - Preview updates accordingly.
-5) Enter the “Message content” in the textarea.
-6) Click “Send”.
+(Opcjonalnie) dodaj logo w FACTION_LOGO + wrzuć PNG do assets/logos/new_faction/
+
+Na koniec:
+
+Zmień ASSET_VERSION, jeśli dodałeś nowe pliki PNG/MP3.
+
+5.3 Dodanie nowego layoutu lub zmiana tła istniejącego
+
+Wrzuć/Podmień PNG w assets/layouts/<faction>/...
+
+Zmień ścieżkę w LAYOUT_BG jeśli zmieniła się nazwa pliku
+
+Jeśli layout ma inne proporcje:
+
+policz AR = szerokość / wysokość
+
+dodaj do LAYOUT_AR
+
+Dopasuj marginesy w SCREEN_INSETS:
+
+ustaw duże marginesy,
+
+wyślij długi tekst,
+
+zmniejszaj aż będzie idealnie,
+
+zostaw zapas, żeby nie dotykało ramki
+
+Zwiększ ASSET_VERSION (cache!)
+
+5.4 Zmiana fontu
+
+Dodaj font do <head> (Google Fonts) lub użyj fontu lokalnego.
+
+Ustaw w FONT_STACK[faction].
+
+Commit i odśwież.
+
+5.5 Dodanie/zmiana logo
+
+Wrzuć logo do assets/logos/<faction>/...png
+
+Dodaj wpis do FACTION_LOGO
+
+Zwiększ ASSET_VERSION (żeby odświeżyć cache)
+
+6) Diagnostyka (najczęstsze problemy)
+6.1 „Nie widzę zmian / tablet widzi starą wersję”
+
+Zwiększ ASSET_VERSION
+
+Hard refresh (Ctrl+Shift+R)
+
+Na mobile: wyczyść cache strony / użyj nowszej wersji linku
+
+6.2 „Zawiesza się na ‘Kliknij aby odblokować dźwięk’”
+
+Kliknij w overlay (spróbuj też dotknąć i przytrzymać).
+
+Jeśli nadal nie znika, problem jest zwykle w:
+
+cache starego JS,
+
+błędzie JS blokującym wykonanie (sprawdź konsolę),
+
+nietypowych ustawieniach przeglądarki na tablecie.
+
+6.3 „Nie wysyła z GM / nie odbiera w Infoczytniku”
+
+Sprawdź czy config/firebase-config.js istnieje i jest poprawny.
+
+Sprawdź czy Firestore jest włączony w Firebase Console.
+
+Sprawdź reguły Firestore (na start test mode ok).
+
+🇬🇧 Documentation (EN)
+1) Short description
+
+WH40k Data-Slate is a lightweight web app made of two pages:
+
+GM.html — Game Master control panel for sending messages/pings and changing the visual style.
+
+Infoczytnik.html — Player display screen (tablet/laptop) showing the message on a themed Data-Slate background and playing audio cues.
+
+They sync in real time via Firebase Firestore (dataslate/current).
+
+2) User guide (step by step)
+2.1 Requirements
+
+Modern browser (Chrome/Chromium recommended)
+
+Internet connection
+
+One device for GM and one for players (or two tabs on one device)
+
+2.2 Startup
+
+Open GM.html
+
+Open Infoczytnik.html
+
+On Infoczytnik click the overlay:
+“Click once to unlock audio”
+(Browsers block audio until user interaction.)
+
+2.3 Sending a message
+
+Choose Faction / layout
+
+Set message style (color + font size)
+
+Set Prefix+Suffix style (shared color + shared font size)
+
+Configure fillers:
+
+Randomize automatically, or manual indices
+
+Enter message text
+
+Click Send
 
 Result:
-- Infoczytnik switches to the selected faction layout.
-- Appropriate font family is applied.
-- Colors and font sizes are updated.
-- Prefix + logo (if defined) + message text + suffix are displayed.
-- Message audio (Message.mp3) is played.
 
-2.4. Ping (GM → Infoczytnik)
-1) Click “Ping”.
+Layout, fonts, colors update
 
-Result:
-- Infoczytnik plays the Ping sound (Ping.mp3).
-- Current style settings are also resent to keep visuals consistent.
+Prefix + (optional logo) + message + suffix are displayed
 
-2.5. Clear Screen (GM → Infoczytnik)
-1) Click “Clear screen”.
+Message sound plays
 
-Result:
-- Prefix, message text, and suffix are removed.
-- Layout background remains visible.
+2.4 Ping
 
-2.6. Clear Text Field (GM only)
-1) Click “Clear field”.
+Click Ping → plays Ping sound.
 
-Result:
-- Only the GM text input is cleared.
-- No data is sent to Infoczytnik.
+2.5 Clear screen
 
-2.7. Prefix / Suffix Preview (GM)
-- A preview box above the message shows the current prefix.
-- A preview box below the message shows the current suffix.
-- These are read-only previews controlled by randomization or manual index.
+Click Clear screen → clears text but keeps background.
 
-============================================================
-3) HOW IT WORKS — TECHNICAL OVERVIEW (CODE & FIREBASE)
-============================================================
+3) Technical overview
+3.1 Architecture
 
-3.1. Application Architecture
-There are two independent HTML pages:
-- GM.html:
-  - UI for selecting faction, colors, font sizes, and filler behavior.
-  - Writes state to Firestore (dataslate/current).
-- Infoczytnik.html:
-  - Listens in real time to Firestore updates.
-  - Updates layout, fonts, colors, logos, audio, and text accordingly.
+GM.html writes state to Firestore
 
-3.2. Firebase / Firestore
-Firestore acts as a real-time message bus.
+Infoczytnik.html listens with onSnapshot() and updates UI
 
-Key elements:
-- Collection: dataslate
-- Document: current
-- Path: dataslate/current
+Firestore path:
 
-GM:
-- Uses currentRef.set(...) to write state.
+Collection: dataslate
 
-Infoczytnik:
-- Uses onSnapshot(currentRef, callback) to react instantly.
+Document: current
 
-This behaves like a shared state document:
-- Any GM action overwrites the document.
-- Infoczytnik receives updates immediately.
+Path: dataslate/current
 
-3.3. Firestore Document Schema (Data Contract)
-Important fields:
+3.2 Firebase config (config/firebase-config.js)
 
-A) Event type
-- type: "message" | "ping" | "clear"
+Create from template and paste your Firebase web config:
+window.firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};
 
-B) Meta / deduplication
-- nonce: unique random identifier
-- ts: serverTimestamp()
+Both pages read it from window.firebaseConfig.
 
-Infoczytnik tracks lastNonce to avoid replaying the same event.
+3.3 Firestore document schema (data contract)
 
-C) Content & appearance
-- faction: e.g. "mechanicus", "inquisition"
-- text: message body (for type="message")
-- color / fontColor: message text color
+Key fields:
 
-D) Prefix / Suffix
-- prefixIndex / suffixIndex (1..N), used to select fillers on Infoczytnik side
-Optional future support:
-- prefix / suffix (explicit text)
+type: "message" | "ping" | "clear"
 
-E) Typography styling (from GM)
-- msgFontSize: e.g. "28px"
-- prefixFontSize: e.g. "14px"
-- suffixFontSize: e.g. "14px"
-- prefixColor: e.g. "#ffffff" or "rgba(...)"
-- suffixColor: same
+nonce: unique event id (dedup)
 
-F) Audio (optional overrides)
-- pingUrl
-- msgUrl / messageUrl
+faction
 
-By default, Infoczytnik uses:
-- assets/audio/global/Ping.mp3
-- assets/audio/global/Message.mp3
+text
 
-3.4. GM.html — Code Responsibilities
-GM:
-- Defines filler lists (LAYOUTS) per faction:
-  LAYOUTS[faction].prefixes[]
-  LAYOUTS[faction].suffixes[]
+color / fontColor
 
-- computePreview():
-  - Chooses prefix/suffix:
-    - random when randomFillers is checked,
-    - manual index otherwise.
-  - Updates prefixPreview and suffixPreview.
-  - Enables/disables manual inputs appropriately.
+msgFontSize
 
-- sendMessage(isClear):
-  - Builds Firestore payload:
-    - type = "message" or "clear"
-    - faction, color/fontColor
-    - msgFontSize, prefix/suffix style
-    - prefixIndex, suffixIndex
-    - text
-    - nonce, ts
-  - Writes via currentRef.set(..., { merge:false })
+prefixIndex, suffixIndex
 
-- ping():
-  - Writes type="ping" with nonce.
-  - Includes style fields to keep Infoczytnik state consistent.
+prefixColor, suffixColor
 
-3.5. Infoczytnik.html — Code Responsibilities
-Infoczytnik:
-- Loads Google Fonts with fallback to Calibri/Arial.
-- Uses CSS variables for all styling:
-  --accent, --font
-  --screen-top/right/bottom/left (safe area margins)
-  --msg-font-size, --prefix-font-size, --suffix-font-size
-  --prefix-color, --suffix-color
+prefixFontSize, suffixFontSize
 
-- Layout rendering:
-  - Background layout is an <img> with object-fit: contain.
-  - Text is placed in an absolutely positioned .screen element on top.
-  - .screen has overflow:auto → only text scrolls.
-  - Background remains static.
+Optional audio overrides:
 
-- Safe text area calculation:
-  Implemented via percentage-based CSS variables:
-    --screen-top
-    --screen-right
-    --screen-bottom
-    --screen-left
+pingUrl
 
-Why percentages?
-- Layout scales proportionally on different devices.
-- Percentage insets scale with the layout image.
-- This guarantees text never overlaps decorative frame elements.
+msgUrl / messageUrl
 
-How values were chosen:
-- Visual inspection of each PNG layout.
-- Conservative margins to ensure safety.
-- Different presets for different frame designs:
-  - Inquisition layout uses thicker top/bottom elements.
-  - Default layouts use slightly smaller margins.
+3.4 Safe text area (why it never goes outside the frame)
 
-Presets are defined in SCREEN_INSETS.
+The background is an <img> with object-fit: contain.
+Text lives in an absolutely positioned .screen overlay.
 
-- Panel resizing:
-  fitPanel(ar):
-  - Calculates maximum panel size that fits viewport.
-  - Preserves layout aspect ratio (AR).
-  - Applies width/height directly to panel.
+The safe area margins are percentage-based CSS variables:
 
-Aspect ratios stored in LAYOUT_AR.
+--screen-top/right/bottom/left
 
-- Firestore listener:
-  onSnapshot(dataslate/current):
-  1) Checks nonce to avoid duplicates.
-  2) Reads faction and base color.
-  3) applyLayout(): sets background, font stack, safe area, AR.
-  4) applyTextStyleFromDoc(): updates CSS variables from GM.
-  5) Reacts to type:
-     - clear → clears text
-     - ping → plays ping sound
-     - message → resolves prefix/suffix and displays message, plays message sound
+Percentages scale with the background image across devices, ensuring the text stays inside the frame.
 
-- Fillers:
-  Defined in FILLERS.
-  Used when GM sends only prefixIndex / suffixIndex.
+3.5 Audio unlock overlay
 
-- Logos:
-  Defined in FACTION_LOGO.
-  Displayed in a fixed-size container (54x54).
-  object-fit: contain ensures no distortion.
-  Logos scroll together with prefix because they are inside .screen.
+Mobile/desktop browsers block autoplay.
+Infoczytnik shows an overlay and unlocks audio after a click/tap.
 
-3.6. Audio Unlock Mechanism
-Modern browsers block autoplay audio.
-Infoczytnik shows an overlay requiring a user click.
-After interaction, audio playback is allowed for the session.
+4) Assets & cache busting
+4.1 Assets structure
 
-============================================================
-4) ASSETS & CACHE MANAGEMENT
-============================================================
+assets/audio/global/Ping.mp3
 
-4.1. Asset structure (example)
-- assets/audio/global/Ping.mp3
-- assets/audio/global/Message.mp3
-- assets/layouts/inquisition/DataSlate_Inq.png
-- assets/layouts/<faction>/DataSlate_04.png
-- assets/logos/inquisition/Inquisition.png
-- assets/logos/mechanicus/Mechanicus.png
+assets/audio/global/Message.mp3
 
-4.2. ASSET_VERSION (cache busting)
-Infoczytnik defines:
-ASSET_VERSION = "2025-12-13-1"
+assets/layouts/<faction>/...png
 
-All asset URLs include:
-?v=ASSET_VERSION
+assets/logos/<faction>/...png
 
-Purpose:
-- Forces browsers to reload assets after updates.
-- Avoids stale PNG/MP3 cached by GitHub Pages or Chrome.
+4.2 ASSET_VERSION
 
-When to change:
-- Whenever you replace or add PNG or MP3 files.
+Infoczytnik uses:
 
-============================================================
-5) EXTENDING THE APPLICATION (STEP-BY-STEP)
-============================================================
+ASSET_VERSION = "YYYY-MM-DD-X"
 
-5.1. Adding new global audio files
-1) Replace files in:
-   assets/audio/global/
-   - Ping.mp3
-   - Message.mp3
-2) Commit changes.
-3) Increase ASSET_VERSION in Infoczytnik.
-4) Commit again.
-5) Refresh Infoczytnik (Ctrl+Shift+R).
+All assets are loaded with ?v=ASSET_VERSION to force refresh on tablets/browsers.
 
-5.2. Adding faction-specific audio (future-ready)
-Recommended structure:
-assets/audio/factions/<faction>/Ping.mp3
-assets/audio/factions/<faction>/Message.mp3
+5) Extending the project
+5.1 Replace global audio
 
-Two approaches:
-- Infoczytnik-side mapping (FACTION_AUDIO).
-- GM sends pingUrl / msgUrl explicitly (already supported).
+Replace:
 
-5.3. Adding a new faction
-Requires changes in both files.
+assets/audio/global/Ping.mp3
 
-GM.html:
-1) Add <option> to faction select.
-2) Add filler lists to LAYOUTS.
+assets/audio/global/Message.mp3
 
-Infoczytnik.html:
-1) Add layout PNG under assets/layouts/<faction>/.
-2) Add entry in LAYOUT_BG.
-3) Add aspect ratio to LAYOUT_AR if needed.
-4) Add safe area preset to SCREEN_INSETS if needed.
-5) Add font to Google Fonts and FONT_STACK (optional).
-6) Add fillers to FILLERS (if using indices).
-7) Add logo to FACTION_LOGO (optional).
+Commit
 
-Increase ASSET_VERSION if new assets were added.
+Increase ASSET_VERSION
 
-5.4. Adding a new layout image
-1) Add PNG to assets/layouts/<faction>/.
-2) Measure aspect ratio (width / height).
-3) Add to LAYOUT_BG and LAYOUT_AR.
-4) Tune SCREEN_INSETS:
-   - Start with large margins.
-   - Send long text.
-   - Reduce margins until text fits comfortably without touching the frame.
+Commit again
 
-5.5. Adding new logos
-1) Add PNG to assets/logos/<faction>/.
-2) Register in FACTION_LOGO.
-3) Increase ASSET_VERSION and commit.
+5.2 Add a new faction
 
-5.6. Adding new GM controls
-Rule:
-- Any new visual control must write data to Firestore.
-- Infoczytnik must read and apply it.
+GM.html: add <option> + add LAYOUTS.new_faction
 
-Pattern:
-GM:
-- Add input → read value → include in set().
-Infoczytnik:
-- Read field from document → apply to CSS variable or DOM.
+Infoczytnik.html: add layout in LAYOUT_BG, optional FONT_STACK, FILLERS, FACTION_LOGO, custom SCREEN_INSETS/LAYOUT_AR
 
-============================================================
-6) TROUBLESHOOTING
-============================================================
+5.3 Add/replace a layout
 
-- Changes not visible:
-  - Check commits.
-  - Hard refresh.
-  - Update ASSET_VERSION.
+Put PNG in assets/layouts/<faction>/
 
-- No audio:
-  - Click audio unlock overlay.
-  - Check MP3 paths.
-  - Look for 404 errors in console.
+Update LAYOUT_BG
 
-- Text overlaps frame:
-  - Increase SCREEN_INSETS margins.
-  - Verify aspect ratio.
+If aspect ratio differs, update LAYOUT_AR
 
-============================================================
-7) GLOSSARY
-============================================================
-- GM — Game Master panel
-- Infoczytnik — player display screen
-- Layout — background PNG frame
-- Screen / safe area — text-safe region
-- Fillers — prefix and suffix texts
-- nonce — unique event identifier
-- ASSET_VERSION — cache-busting string
+Tune safe margins in SCREEN_INSETS
 
-============================================================
-END OF DOCUMENT (EN)
-============================================================
+Increase ASSET_VERSION
+
+5.4 Change fonts
+
+Add font to Google Fonts link
+
+Update FONT_STACK[faction]
+
+5.5 Add/replace logos
+
+Put PNG in assets/logos/<faction>/
+
+Update FACTION_LOGO
+
+Increase ASSET_VERSION
+
+6) Troubleshooting
+
+Changes not visible: increase ASSET_VERSION, hard refresh, clear cache on mobile.
+
+No audio: click/tap to unlock audio overlay.
+
+GM doesn’t send / Infoczytnik doesn’t receive: verify config/firebase-config.js, Firestore enabled, rules allow read/write.
