@@ -359,8 +359,16 @@
       const cfg=getLayout();
       const pMax=cfg.prefixes.length, sMax=cfg.suffixes.length;
 
+      el.prefixIndex.max = String(pMax);
+      el.suffixIndex.max = String(sMax);
+
       const pIdx=el.randomFillers.checked ? rand1to(pMax) : clampIndex(el.prefixIndex.value, pMax);
       const sIdx=el.randomFillers.checked ? rand1to(sMax) : clampIndex(el.suffixIndex.value, sMax);
+
+      if(!el.randomFillers.checked){
+        el.prefixIndex.value = pIdx;
+        el.suffixIndex.value = sIdx;
+      }
 
       el.prefixPreview.textContent = cfg.prefixes[pIdx-1] || "";
       el.suffixPreview.textContent = cfg.suffixes[sIdx-1] || "";
