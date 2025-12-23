@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>WH40k Data-Slate — GM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Rajdhani:wght@400;600&family=Black+Ops+One&family=Staatliches&family=Orbitron:wght@400;700&family=Questrial&family=Russo+One&display=swap" rel="stylesheet">
   <style>
     :root{--text:#eaeaea;--muted:#bdbdbd;--accent:#ffd27a;--border:#2a2a2a;--panel:rgba(18,18,18,.92);}
     *{box-sizing:border-box}
@@ -72,6 +75,22 @@
 
     hr.sep{border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0;}
     code{font-family:Consolas,"Courier New",monospace;font-size:12px;color:#ddd}
+
+    .livePreviewBox{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.35);
+      min-height:140px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      justify-content:center;
+    }
+    .livePreviewBox .line{display:block;}
+    .livePreviewBox .prefix,.livePreviewBox .suffix{opacity:.9;}
+    .livePreviewBox .message{line-height:1.35;}
   </style>
 </head>
 <body>
@@ -182,6 +201,12 @@
               <label for="flicker" style="margin:0; color:var(--text);">Flicker</label>
             </div>
           </div>
+
+          <div class="livePreviewBox" id="livePreview">
+            <span class="line prefix" id="livePreviewPrefix">++ INCOMING DATA FEED ++</span>
+            <span class="line message" id="livePreviewMsg">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span>
+            <span class="line suffix" id="livePreviewSuffix">++ PRAISE THE OMNISSIAH ++</span>
+          </div>
         </div>
       </div>
 
@@ -254,9 +279,24 @@
       status: document.getElementById("status"),
       prefixPreview: document.getElementById("prefixPreview"),
       suffixPreview: document.getElementById("suffixPreview"),
+      livePreview: document.getElementById("livePreview"),
+      livePreviewPrefix: document.getElementById("livePreviewPrefix"),
+      livePreviewMsg: document.getElementById("livePreviewMsg"),
+      livePreviewSuffix: document.getElementById("livePreviewSuffix"),
 
       // chips
       chips: Array.from(document.querySelectorAll(".chip")),
+    };
+
+    const FONT_STACK = {
+      mechanicus:      '"Share Tech Mono", Calibri, Arial, sans-serif',
+      inquisition:     '"Cinzel", Calibri, Arial, sans-serif',
+      militarum:       '"Rajdhani", Calibri, Arial, sans-serif',
+      khorne:          '"Black Ops One", Calibri, Arial, sans-serif',
+      nurgle:          '"Staatliches", Calibri, Arial, sans-serif',
+      tzeentch:        '"Orbitron", Calibri, Arial, sans-serif',
+      slaanesh:        '"Questrial", Calibri, Arial, sans-serif',
+      chaos_undivided: '"Russo One", Calibri, Arial, sans-serif',
     };
 
     const LAYOUTS = {
@@ -295,6 +335,26 @@
       return t || "rgba(255,255,255,.88)";
     }
 
+    function updateLivePreview(){
+      const fontStack = FONT_STACK[el.faction.value] || 'Calibri, Arial, sans-serif';
+      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 28) + "px";
+      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 14) + "px";
+      const psColor   = getPrefixSuffixColor();
+      const msgColor  = el.fontColor.value || "#00ff66";
+
+      el.livePreview.style.fontFamily = fontStack;
+      el.livePreviewPrefix.textContent = el.prefixPreview.textContent || "";
+      el.livePreviewSuffix.textContent = el.suffixPreview.textContent || "";
+
+      el.livePreviewPrefix.style.color = psColor;
+      el.livePreviewSuffix.style.color = psColor;
+      el.livePreviewPrefix.style.fontSize = psFontPx;
+      el.livePreviewSuffix.style.fontSize = psFontPx;
+
+      el.livePreviewMsg.style.color = msgColor;
+      el.livePreviewMsg.style.fontSize = msgFontPx;
+    }
+
     function computePreview(){
       const cfg=getLayout();
       const pMax=cfg.prefixes.length, sMax=cfg.suffixes.length;
@@ -309,6 +369,8 @@
       const manualDisabled = el.randomFillers.checked;
       el.prefixIndex.disabled = manualDisabled;
       el.suffixIndex.disabled = manualDisabled;
+
+      updateLivePreview();
     }
 
     async function sendMessage(isClear){
@@ -418,11 +480,14 @@
             : c;
         }
       }
+
+      updateLivePreview();
     }));
 
     // picker prefix/suffix -> ustawia tekst na #RRGGBB
     el.psColorPicker.addEventListener("input", () => {
       el.psColorText.value = el.psColorPicker.value;
+      updateLivePreview();
     });
 
     ["change","input"].forEach(evt=>{
@@ -430,6 +495,13 @@
       el.randomFillers.addEventListener(evt, computePreview);
       el.prefixIndex.addEventListener(evt, computePreview);
       el.suffixIndex.addEventListener(evt, computePreview);
+    });
+
+    ["input","change"].forEach(evt=>{
+      el.fontColor.addEventListener(evt, updateLivePreview);
+      el.msgFontSize.addEventListener(evt, updateLivePreview);
+      el.psColorText.addEventListener(evt, updateLivePreview);
+      el.psFontSize.addEventListener(evt, updateLivePreview);
     });
 
     setStatus("gotowe");
