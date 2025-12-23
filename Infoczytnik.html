@@ -291,7 +291,7 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  const ASSET_VERSION = "2025-12-13-1";
+  const ASSET_VERSION = "2025-12-13-2";
 
   const DEFAULT_PING_URL = `assets/audio/global/Ping.mp3?v=${ASSET_VERSION}`;
   const DEFAULT_MSG_URL  = `assets/audio/global/Message.mp3?v=${ASSET_VERSION}`;
@@ -299,7 +299,7 @@
   const LAYOUT_BG = {
     inquisition: `assets/layouts/inquisition/DataSlate_Inq.png?v=${ASSET_VERSION}`,
     mechanicus:  `assets/layouts/mechanicus/DataSlate_04.png?v=${ASSET_VERSION}`,
-    militarum:   `assets/layouts/militarum/DataSlate_04.png?v=${ASSET_VERSION}`,
+    militarum:   `assets/layouts/militarum/Litannie_Zaginionych.png?v=${ASSET_VERSION}`,
     chaos_undivided: `assets/layouts/chaos_undivided/DataSlate_04.png?v=${ASSET_VERSION}`,
     khorne:      `assets/layouts/khorne/DataSlate_04.png?v=${ASSET_VERSION}`,
     nurgle:      `assets/layouts/nurgle/DataSlate_04.png?v=${ASSET_VERSION}`,
@@ -307,9 +307,10 @@
     slaanesh:    `assets/layouts/slaanesh/DataSlate_04.png?v=${ASSET_VERSION}`,
   };
 
-  const LAYOUT_AR = { inquisition: 707/1023, default04: 1131/1600 };
+  const LAYOUT_AR = { inquisition: 707/1023, militarum: 1263/1595, default04: 1131/1600 };
   const SCREEN_INSETS = {
     inquisition: { top:"14%", right:"14%", bottom:"26%", left:"18%" },
+    militarum:   { top:"12%", right:"12%", bottom:"20%", left:"12%" },
     default04:   { top:"14%", right:"14%", bottom:"22%", left:"18%" },
   };
 
@@ -411,6 +412,9 @@
     if(key === "inquisition"){
       setInsets(SCREEN_INSETS.inquisition);
       currentAr = LAYOUT_AR.inquisition;
+    }else if(key === "militarum"){
+      setInsets(SCREEN_INSETS.militarum);
+      currentAr = LAYOUT_AR.militarum;
     }else{
       setInsets(SCREEN_INSETS.default04);
       currentAr = LAYOUT_AR.default04;
