@@ -171,6 +171,11 @@
           <div class="small">
             Gdy losowanie wyłączone, wybierasz osobno numer Prefix i Suffix (1..N zależnie od frakcji).
           </div>
+
+          <div class="row" style="align-items:center; gap:8px; margin-top:12px;">
+            <input type="checkbox" id="showLogo" checked style="width:18px; height:18px; margin:0;" />
+            <label for="showLogo" style="margin:0; color:var(--text);">Dodaj logo</label>
+          </div>
         </div>
       </div>
 
@@ -227,6 +232,7 @@
       randomFillers: document.getElementById("randomFillers"),
       prefixIndex: document.getElementById("prefixIndex"),
       suffixIndex: document.getElementById("suffixIndex"),
+      showLogo: document.getElementById("showLogo"),
 
       // message
       message: document.getElementById("message"),
@@ -327,6 +333,7 @@
 
           // fillery
           prefixIndex, suffixIndex,
+          showLogo: !!el.showLogo.checked,
 
           // tekst
           text: isClear ? "" : (el.message.value || ""),
@@ -362,6 +369,7 @@
           suffixColor: getPrefixSuffixColor(),
           prefixFontSize: psFontPx + "px",
           suffixFontSize: psFontPx + "px",
+          showLogo: !!el.showLogo.checked,
 
           nonce: nonce(),
           ts: firebase.firestore.FieldValue.serverTimestamp()
