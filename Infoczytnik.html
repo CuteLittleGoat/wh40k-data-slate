@@ -120,6 +120,7 @@
     padding: clamp(14px, 2.4vw, 24px);
     display:block;
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
+    z-index: 1;
   }
 
   .screen::after{
@@ -132,10 +133,16 @@
       rgba(255,255,255,.04);
     opacity:.65;
     animation: flickerBg 9s infinite;
+    z-index: 0;
   }
 
   .screen.no-flicker::after{
     animation: none;
+  }
+
+  .screen > *{
+    position: relative;
+    z-index: 1;
   }
 
   .prefixRow{
