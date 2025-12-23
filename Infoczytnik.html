@@ -97,7 +97,6 @@
       radial-gradient(closest-side, rgba(0,0,0,0) 60%, rgba(0,0,0,.70) 100%),
       rgba(255,255,255,.04);
     opacity:.65;
-    animation: flickerBg 9s infinite;
   }
   @keyframes scanMove { 0%{transform:translateY(0)} 100%{transform:translateY(20px)} }
   @keyframes flickerBg {
@@ -119,6 +118,18 @@
     padding: clamp(14px, 2.4vw, 24px);
     display:block;
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
+  }
+
+  .screen::after{
+    content:"";
+    position:absolute;
+    inset:-2%;
+    pointer-events:none;
+    background:
+      radial-gradient(closest-side, rgba(0,0,0,0) 60%, rgba(0,0,0,.70) 100%),
+      rgba(255,255,255,.04);
+    opacity:.65;
+    animation: flickerBg 9s infinite;
   }
 
   .prefixRow{
