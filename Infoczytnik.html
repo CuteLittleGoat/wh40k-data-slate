@@ -8,7 +8,7 @@
 <!-- ✅ AUTO-CACHE-BUSTING (żeby tablet nie trzymał starej wersji) -->
 <script>
   (function autoCacheBust(){
-    const INF_VERSION = "2025-12-13-2"; // <- zmieniaj przy aktualizacjach
+    const INF_VERSION = "2025-12-13-3"; // <- zmieniaj przy aktualizacjach
     const url = new URL(window.location.href);
     if (url.searchParams.get("v") !== INF_VERSION) {
       url.searchParams.set("v", INF_VERSION);
@@ -350,13 +350,20 @@
 
   let currentAr = LAYOUT_AR.default04;
 
-  function setLogoForFaction(key){
+  function setLogoForFaction(key, shouldShow){
+    if(!shouldShow){
+      el.logo.removeAttribute("src");
+      el.logo.style.display = "none";
+      return;
+    }
+
     const src = FACTION_LOGO[key];
     if(!src){
       el.logo.removeAttribute("src");
       el.logo.style.display = "none";
       return;
     }
+
     el.logo.src = src;
     el.logo.style.display = "block";
   }
@@ -369,7 +376,7 @@
     return arr[Math.max(0, Math.min(arr.length - 1, i))] || "";
   }
 
-  function applyLayout(factionKey, color){
+  function applyLayout(factionKey, color, showLogo){
     const key = (factionKey && LAYOUT_BG[factionKey]) ? factionKey : "mechanicus";
     el.layoutImg.src = LAYOUT_BG[key] || LAYOUT_BG.mechanicus;
 
@@ -384,7 +391,7 @@
       currentAr = LAYOUT_AR.default04;
     }
     fitPanel(currentAr);
-    setLogoForFaction(key);
+    setLogoForFaction(key, showLogo !== false);
   }
 
   function applyTextStyleFromDoc(d){
@@ -422,8 +429,9 @@
 
     const faction = d.faction || "mechanicus";
     const color   = d.color || d.fontColor || "#00ff66";
+    const showLogo = d.showLogo !== false;
 
-    applyLayout(faction, color);
+    applyLayout(faction, color, showLogo);
     applyTextStyleFromDoc(d);
 
     if(d.type === "clear"){
