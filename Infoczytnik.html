@@ -8,7 +8,8 @@
 <!-- ✅ AUTO-CACHE-BUSTING (żeby tablet nie trzymał starej wersji) -->
 <script>
   (function autoCacheBust(){
-    const INF_VERSION = "2025-12-13-4"; // <- zmieniaj przy aktualizacjach
+    const INF_VERSION = "2025-12-13-5"; // <- zmieniaj przy aktualizacjach
+    window.__dsVersion = INF_VERSION;    // spójne dla assetów i cache-bustingu
     const url = new URL(window.location.href);
     if (url.searchParams.get("v") !== INF_VERSION) {
       url.searchParams.set("v", INF_VERSION);
@@ -120,6 +121,7 @@
     padding: clamp(14px, 2.4vw, 24px);
     display:block;
     text-shadow: 0 2px 6px rgba(0,0,0,.70);
+    z-index: 1;
   }
 
   .screen::after{
@@ -132,10 +134,16 @@
       rgba(255,255,255,.04);
     opacity:.65;
     animation: flickerBg 9s infinite;
+    z-index: 0;
   }
 
   .screen.no-flicker::after{
     animation: none;
+  }
+
+  .screen > *{
+    position: relative;
+    z-index: 1;
   }
 
   .prefixRow{
@@ -291,7 +299,7 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  const ASSET_VERSION = "2025-12-13-2";
+  const ASSET_VERSION = window.__dsVersion || "2025-12-13-5";
 
   const DEFAULT_PING_URL = `assets/audio/global/Ping.mp3?v=${ASSET_VERSION}`;
   const DEFAULT_MSG_URL  = `assets/audio/global/Message.mp3?v=${ASSET_VERSION}`;
