@@ -36,6 +36,8 @@
     --prefix-font-size: clamp(12px, 2.0vw, 16px);
     --suffix-font-size: clamp(12px, 2.0vw, 16px);
 
+    --filler-gap: clamp(12px, 2vw, 18px);
+
     --prefix-color: rgba(255,255,255,.88);
     --suffix-color: rgba(255,255,255,.86);
   }
@@ -144,7 +146,7 @@
     color: var(--prefix-color);
     font-size: var(--prefix-font-size);
     letter-spacing: 1.5px;
-    margin: 0 0 10px 0;
+    margin: 0 0 var(--filler-gap) 0;
     white-space: pre-wrap;
   }
 
@@ -184,7 +186,7 @@
     color: var(--suffix-color);
     font-size: var(--suffix-font-size);
     letter-spacing: 1.5px;
-    margin: 12px 0 0 0;
+    margin: var(--filler-gap) 0 0 0;
     white-space: pre-wrap;
   }
 
