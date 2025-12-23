@@ -8,7 +8,7 @@
 <!-- ✅ AUTO-CACHE-BUSTING (żeby tablet nie trzymał starej wersji) -->
 <script>
   (function autoCacheBust(){
-    const INF_VERSION = "2025-12-13-3"; // <- zmieniaj przy aktualizacjach
+    const INF_VERSION = "2025-12-13-4"; // <- zmieniaj przy aktualizacjach
     const url = new URL(window.location.href);
     if (url.searchParams.get("v") !== INF_VERSION) {
       url.searchParams.set("v", INF_VERSION);
@@ -132,6 +132,10 @@
       rgba(255,255,255,.04);
     opacity:.65;
     animation: flickerBg 9s infinite;
+  }
+
+  .screen.no-flicker::after{
+    animation: none;
   }
 
   .prefixRow{
@@ -361,6 +365,14 @@
     document.documentElement.style.setProperty("--screen-left", p.left);
   }
 
+  function setFlickerState(shouldFlicker){
+    if(shouldFlicker === false){
+      el.screen.classList.add("no-flicker");
+    }else{
+      el.screen.classList.remove("no-flicker");
+    }
+  }
+
   let currentAr = LAYOUT_AR.default04;
 
   function setLogoForFaction(key, shouldShow){
@@ -443,8 +455,10 @@
     const faction = d.faction || "mechanicus";
     const color   = d.color || d.fontColor || "#00ff66";
     const showLogo = d.showLogo !== false;
+    const flicker = d.flicker !== false;
 
     applyLayout(faction, color, showLogo);
+    setFlickerState(flicker);
     applyTextStyleFromDoc(d);
 
     if(d.type === "clear"){
@@ -487,6 +501,7 @@
 
   // Start
   applyLayout("mechanicus", "#00ff66");
+  setFlickerState(true);
 </script>
 </body>
 </html>
