@@ -1,0 +1,270 @@
+# Multimedia_Display_update
+
+Poniżej znajduje się pełny zapis dotychczasowej rozmowy (dla kontekstu) oraz bardzo szczegółowa analiza kodu i plan zmian wymaganych do dodania obsługi multimediów (obrazy/GIF/MP4) w Infoczytniku, wysyłanych z panelu GM. Dokument ma posłużyć jako przewodnik implementacyjny dla kolejnego AI w innym repo/środowisku.
+
+---
+
+## 1) Zapis rozmowy (pełny kontekst)
+
+### Użytkownik:
+Przeanalizuj kod aplikacji. Czy jest możliwe dodanie funkcjonalności wyświetlania ilustracji na Infoczytnik wysłanych przez panel GM? Nie rób zmian w kodzie. Przeanalizuj go super dokładnie i napisz mi dokładnie z czym taka zmiana by się wiązała. Czy wystarczy coś zmodyfikować czy od początku projekt nie był tworzony z myślą o przesyłaniu grafik i na tym etapie taka zmiana by wymagała gruntownego przebudowania całości?
+
+### Asystent:
+(Analiza: architektura to GM → Firestore → Infoczytnik. W kodzie brak pola dla obrazów. Dodanie ilustracji możliwe bez przebudowy całej architektury, ale wymaga: nowego pola w payload, obsługi UI GM, renderowania w Infoczytniku oraz hostingu plików zewnętrznych, np. Firebase Storage. W Firestore trzymamy link, nie plik.)
+
+### Użytkownik:
+Uzupełnij informacje odnośnie hostingu plików i limitu 1MB. Czyli nie da się zrobić uploadu w panelu GM? Muszę obrazek najpierw wrzucać gdzieś na serwer a w panelu daję tylko link?
+
+### Asystent:
+(Analiza: Firestore ma limit ~1 MiB na dokument, więc trzymanie obrazów w bazie odpada. Upload z GM jest możliwy, ale wymaga integracji z hostingiem plików (np. Firebase Storage). W obecnej wersji aplikacji nie ma uploadu, więc bez zmian w kodzie trzeba hostować obraz i podać URL.)
+
+### Użytkownik:
+Chciałbym, żebym w panelu GM mógł uploadować grafikę. Jedną lub kilka. Grafiki mają być wyświetlane razem z tekstem i mają się z nim przewijać. Coś w stylu:
+
+[Prefix]
+[Tekst]
+[Tekst]
+[Obrazek]
+[Tekst]
+[Obrazek]
+[Tekst]
+[Suffix]
+
+Chcę, żeby za duże obrazki skalowały się do rozmiaru pola tekstowego.
+
+Nie wprowadzaj jeszcze zmian w kodzie.
+Przeprowadź analizę czy to jest możliwe, czy Twoim zdaniem takie działanie będzie wygodne dla GM i graczy - ewentualnie zaproponuj lepsze rozwiązanie dające zbliżony efekt końcowy.
+Dodatkowe pytania - czy możliwe by było wyświetlanie plików gif i mp4?
+
+Przykładowo chciałbym, żeby gracze dostali na infoczytniku rozkaz i kawałek mapy z mrygającą kropką (mapa to byłby gif).
+
+### Asystent:
+(Analiza: możliwe poprzez zmianę modelu danych na listę bloków treści. Wygodne dla graczy. Wygoda dla GM zależy od UI listy bloków, drag & drop. GIF działa jako zwykły obraz; MP4 możliwe, ale autoplay na mobile może wymagać muted/interaction.)
+
+### Użytkownik:
+Testy nowej funkcjonalności będą w nowym repo. Nazwę go "DataSlateTesting" albo coś podobnego. Potem skopiuję do niego całą zawartość repo "wh40k-data-slate".
+Przygotuj mi plik o nazwie "Multimedia_Display_update". Zapisz w nim całą tę naszą rozmowę i Twoje analizy kodu i potrzebnych zmian. BARDZO dokładnie możesz opisać co trzeba będzie zmienić. Tak, żeby potem kolejny generator AI (Ty, ale potem w innym środowisku/repo) mógł się nimi kierować i wprowadzić nową funkcjonalność.
+
+---
+
+## 2) Analiza bieżącej architektury
+
+### 2.1. Strony aplikacji
+- **GM.html** — panel prowadzącego (MG/GM). Zapisuje stan do Firestore w dokumencie `dataslate/current`. Brak obsługi uploadu multimediów.
+- **Infoczytnik.html** — ekran graczy. Subskrybuje dokument `dataslate/current` i renderuje layout oraz treść (prefiks, treść, sufiks), plus ewentualne logo frakcji i efekt CRT.
+
+### 2.2. Bieżący model danych (payload w Firestore)
+Dokument `dataslate/current` zawiera m.in.:
+- `type`: `message` | `ping` | `clear`
+- `faction`: klucz frakcji
+- `text`: treść wiadomości (jeden string)
+- `prefixIndex` / `suffixIndex` lub `prefix` / `suffix`
+- ustawienia stylu: `fontColor`, `msgFontSize`, `prefixColor`, `suffixColor`, itd.
+- `showLogo`, `flicker`
+
+**Brak** pól na multimedia, obraz, gif, video.
+
+### 2.3. Renderowanie w Infoczytniku
+- Renderowany jest blok `.screen`, który jest przewijanym kontenerem.
+- Wewnątrz `.screen` są: `prefixRow`, `.msg`, `.suffixRow`.
+- Treść jest ustawiana przez `el.msg.textContent = text` i analogicznie prefix/suffix.
+- Nie ma elementów `<img>` / `<video>` w treści wiadomości (poza logotypem frakcji).
+
+### 2.4. Wnioski architektoniczne
+- Aplikacja jest „state-driven”: GM zapisuje pełen stan w jednym dokumencie, Infoczytnik od razu renderuje wynik.
+- To umożliwia **łatwe rozszerzenie payloadu** o multimedia.
+- **Nie wymaga to przebudowy całej architektury**, ale wymaga zmian w:
+  - GM.html (UI + logika uploadu)
+  - Infoczytnik.html (renderowanie listy bloków treści)
+  - infrastruktura (hostowanie plików, np. Firebase Storage)
+
+---
+
+## 3) Ograniczenia Firestore (limit 1 MiB)
+- Firestore ma limit rozmiaru dokumentu ~1 MiB.
+- Obrazy w base64 są zbyt duże i bardzo szybko przekroczą limit.
+- **W Firestore powinny trafiać tylko URL-e do multimediów**, a nie same pliki.
+
+Wniosek: potrzebny jest hosting plików (np. Firebase Storage, CDN lub własny serwer), z którego Infoczytnik będzie pobierać pliki przez URL.
+
+---
+
+## 4) Docelowa funkcjonalność: multimedia w treści
+
+Wymagania użytkownika:
+- GM może uploadować 1 lub wiele grafik.
+- Grafiki pojawiają się inline w treści wiadomości i przewijają się razem z tekstem, np.:
+
+  [Prefix]
+  [Tekst]
+  [Tekst]
+  [Obrazek]
+  [Tekst]
+  [Obrazek]
+  [Tekst]
+  [Suffix]
+
+- Zbyt duże obrazy skalują się do szerokości pola tekstowego (czyli do `.screen`).
+- Możliwe media: obrazy statyczne, GIF, MP4.
+
+---
+
+## 5) Zmiany w modelu danych (propozycja)
+
+### 5.1. Nowy format treści
+Zamiast pojedynczego pola `text` jako string:
+
+```
+content: [
+  { type: "text", value: "Treść akapitu" },
+  { type: "image", url: "https://.../mapa.gif", alt: "Mapa" },
+  { type: "text", value: "Dalszy tekst" },
+  { type: "video", url: "https://.../clip.mp4", poster: "https://.../thumb.jpg" }
+]
+```
+
+**Uwaga:** można zachować kompatybilność wstecz, np. jeśli `content` nie istnieje, używać `text`.
+
+### 5.2. Obsługa prefix/suffix
+Prefix i suffix nadal mogą być osobnymi polami (tak jak dziś). Powinny pozostać niezależne od listy `content`.
+
+---
+
+## 6) Zmiany w GM.html (panel GM)
+
+### 6.1. UI
+Dodać sekcję „Treść z multimediami”, np.:
+- tekstowy edytor bloków (lista elementów),
+- przycisk „Dodaj tekst” i „Dodaj obraz”,
+- możliwość wstawienia wielu elementów i zmiany ich kolejności,
+- podgląd miniatur obrazów.
+
+Warianty UX:
+- **Prosty wariant**: jedno pole tekstowe + przycisk „Wstaw obraz” → obraz dodawany jako osobny blok w kolejności.
+- **Zaawansowany wariant**: lista bloków z drag&drop.
+
+### 6.2. Upload plików
+GM powinien móc:
+- wybrać plik lokalny,
+- wysłać go do Firebase Storage (lub innego hostingu),
+- odebrać URL i dodać go do listy `content`.
+
+**Wymaga to:**
+- dodania SDK Firebase Storage,
+- konfiguracji reguł Storage (odczyt dla Infoczytnika, zapis dla GM),
+- obsługi błędów i progresu uploadu.
+
+### 6.3. Payload Firestore
+- `sendMessage()` musi zapisać `content` zamiast (lub obok) `text`.
+- Warto zachować `text` jako fallback / kompatybilność wstecz.
+
+---
+
+## 7) Zmiany w Infoczytnik.html (renderowanie)
+
+### 7.1. Render listy bloków
+Zamiast pojedynczego `el.msg.textContent = text`:
+- Tworzyć dynamicznie elementy DOM na podstawie `content`.
+
+Przykładowo:
+- `type: text` → `<p class="msg-text">...</p>`
+- `type: image` → `<img class="msg-media" src="..." />`
+- `type: video` → `<video class="msg-media" src="..." autoplay muted loop playsinline>`
+
+### 7.2. Stylowanie mediów
+- `.msg-media` powinien mieć:
+  - `max-width: 100%`
+  - `height: auto`
+  - ewentualnie `max-height: ...` dla bardzo dużych obrazów
+- Jeśli potrzebne, można ograniczyć wysokość, np. `max-height: 60vh`, aby nie wypychać całej treści.
+
+### 7.3. GIF i MP4
+- GIF: działa jak `<img>`, bez dodatkowej logiki.
+- MP4: wymaga `muted`, `playsinline` i często `autoplay` + `loop` (szczególnie na mobile).
+- MP4 bez dźwięku: bezpieczniejsze dla autoplay.
+
+---
+
+## 8) Hosting plików (Firebase Storage)
+
+### 8.1. Dlaczego konieczny
+- Firestore ma limit 1 MiB na dokument, nie nadaje się do przechowywania plików.
+- Trzeba hostować pliki osobno i zapisywać tylko URL w dokumencie.
+
+### 8.2. Firebase Storage — rekomendacja
+- Najlepiej spójne z Firestore.
+- Pozwala na łatwe pobranie publicznych URL-i.
+- Wymaga konfiguracji reguł (public read lub autoryzacja).
+
+---
+
+## 9) Wygoda dla GM i graczy — ocena
+
+### Gracze
+- Wygodne: media w treści, przewijają się naturalnie.
+- Może być problem, jeśli obraz jest zbyt duży — należy ograniczyć jego wysokość.
+
+### GM
+- Wygodne, jeśli panel ma jasny edytor listy bloków i miniatury.
+- Uciążliwe, jeśli trzeba ręcznie wklejać URL-e bez uploadu.
+- Dlatego najlepszy UX to upload z automatycznym wstawieniem URL.
+
+---
+
+## 10) Proponowane warianty implementacyjne
+
+### Wariant A: Najprostszy (jeden obraz na wiadomość)
+- Jedno pole `imageUrl` (lub upload do Storage).
+- Obraz renderowany zawsze przed lub po tekście.
+- Najmniej zmian w kodzie.
+
+### Wariant B: Lista bloków (docelowy)
+- `content` jako lista elementów `text`/`image`/`video`.
+- Wymaga większego UI w GM, ale spełnia dokładnie wymagania użytkownika.
+
+### Wariant C: Tekst + galeria na końcu
+- `text` jako string + `images[]` jako lista URL-i.
+- Obrazy renderowane zbiorczo po tekście.
+- Prostszą implementacja niż pełny „editor bloków”, ale mniej elastyczna.
+
+---
+
+## 11) Wnioski końcowe
+- Funkcjonalność **jest możliwa** bez przebudowy całej architektury.
+- Największa zmiana to dodanie uploadu i nowej struktury treści.
+- GIF działa bez problemu jako obraz.
+- MP4 możliwe, ale wymaga odpowiednich atrybutów i ostrożności (autoplay na mobile).
+
+---
+
+## 12) Lista zmian do wykonania (krótko, dla AI wdrażającego)
+
+1. **GM.html**
+   - dodać UI do tworzenia listy bloków tekst/obraz/video,
+   - dodać upload do Firebase Storage,
+   - zapisywać `content` do Firestore.
+
+2. **Infoczytnik.html**
+   - wprowadzić renderowanie listy `content` w `.screen`,
+   - dodać CSS dla `.msg-media`,
+   - utrzymać prefiks/sufiks poza listą.
+
+3. **Firestore payload**
+   - zachować kompatybilność: jeśli `content` nie istnieje, użyć `text`.
+
+4. **Storage**
+   - skonfigurować reguły Storage,
+   - implementacja uploadu i pobrania URL.
+
+---
+
+## 13) Pliki kodu, których zmiany będą potrzebne
+
+- `GM.html` — UI + logika uploadu + zapis `content`.
+- `Infoczytnik.html` — renderowanie listy elementów + CSS.
+- `config/firebase-config.js` — bez zmian, ale potrzebny klucz Storage (w praktyce w tym samym projekcie Firebase).
+- (opcjonalnie) dokumentacja w `docs/` — aktualizacja opisów payloadu.
+
+---
+
+KONIEC DOKUMENTU
