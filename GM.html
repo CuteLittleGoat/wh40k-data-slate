@@ -125,7 +125,7 @@
 
           <!-- Rozmiar treści -->
           <label>Wielkość fontu (treść wiadomości) — px</label>
-          <input type="number" id="msgFontSize" min="12" max="80" step="1" value="28" />
+          <input type="number" id="msgFontSize" min="12" max="80" step="1" value="20" />
 
           <hr class="sep">
 
@@ -152,7 +152,7 @@
 
           <!-- Rozmiar Prefix/Suffix -->
           <label>Wielkość fontu Prefix + Suffix (wspólna) — px</label>
-          <input type="number" id="psFontSize" min="10" max="60" step="1" value="14" />
+          <input type="number" id="psFontSize" min="10" max="60" step="1" value="10" />
 
           <div class="small">
             Logo ma stały rozmiar w Infoczytniku. Zmiana rozmiaru prefixu może spowodować zawijanie (OK), logo zostaje bez zmian.
@@ -337,8 +337,8 @@
 
     function updateLivePreview(){
       const fontStack = FONT_STACK[el.faction.value] || 'Calibri, Arial, sans-serif';
-      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 28) + "px";
-      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 14) + "px";
+      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 20) + "px";
+      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 10) + "px";
       const psColor   = getPrefixSuffixColor();
       const msgColor  = el.fontColor.value || "#00ff66";
 
@@ -388,8 +388,8 @@
       const prefixIndex=el.randomFillers.checked ? rand1to(pMax) : clampIndex(el.prefixIndex.value, pMax);
       const suffixIndex=el.randomFillers.checked ? rand1to(sMax) : clampIndex(el.suffixIndex.value, sMax);
 
-      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 28);
-      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 14);
+      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 20);
+      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 10);
 
       setStatus("wysyłam…");
       try{
@@ -430,8 +430,8 @@
     }
 
     async function ping(){
-      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 28);
-      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 14);
+      const msgFontPx = normalizePx(el.msgFontSize.value, 12, 80, 20);
+      const psFontPx  = normalizePx(el.psFontSize.value, 10, 60, 10);
 
       setStatus("ping…");
       try{
