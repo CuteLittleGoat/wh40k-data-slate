@@ -8,7 +8,7 @@
 <!-- ✅ AUTO-CACHE-BUSTING (żeby tablet nie trzymał starej wersji) -->
 <script>
   (function autoCacheBust(){
-    const INF_VERSION = "2025-12-13-7"; // <- zmieniaj przy aktualizacjach
+    const INF_VERSION = "2025-12-13-6"; // <- zmieniaj przy aktualizacjach
     window.__dsVersion = INF_VERSION;    // spójne dla assetów i cache-bustingu
     const url = new URL(window.location.href);
     if (url.searchParams.get("v") !== INF_VERSION) {
@@ -151,6 +151,7 @@
     align-items:flex-start;
     justify-content:space-between;
     gap: 12px;
+    margin-bottom: var(--filler-gap);
   }
 
   .prefix{
@@ -191,12 +192,12 @@
     word-break: break-word;
     color: var(--accent);
     text-shadow: 0 0 18px rgba(0,255,120,.18), 0 2px 6px rgba(0,0,0,.70);
-    margin: var(--filler-gap) 0;
   }
 
   .suffixRow{
     display:flex;
     align-items:flex-start;
+    margin-top: var(--filler-gap);
   }
   .suffix{
     color: var(--suffix-color);
