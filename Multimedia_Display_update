@@ -267,4 +267,65 @@ Przykładowo:
 
 ---
 
+## 14) Rozszerzenie: hiperłącza w treści wiadomości (rozmowa + wnioski)
+
+### 14.1. Kontekst rozmowy (streszczenie)
+- Użytkownik chce wpisywać w panelu GM **hiperłącza w formacie HTML**, np. `<a href="...">link</a>`.
+- Oczekiwany efekt: w Infoczytniku link ma wyglądać jak zwykły tekst (font/kolor/rozmiar z ustawień GM), jedynie **podkreślony**.
+- Kliknięcie ma otwierać link w nowej karcie (`target="_blank"`).
+- Pytanie dodatkowe: czy można wstawiać linki do plików `gif`, `mp4`, `mp3`, by przeglądarka wyświetliła ich zawartość.
+
+### 14.2. Obecny stan w kodzie (dlaczego to dziś nie działa)
+- Treść wiadomości w Infoczytniku jest renderowana jako **czysty tekst**:
+  - `el.msg.textContent = text || "";`
+- To oznacza, że HTML (np. `<a href="...">`) nie jest interpretowany i wyświetla się literalnie.
+
+### 14.3. Wymagane zmiany (konceptualnie)
+1. **Infoczytnik.html**
+   - Zamiast `textContent` użyć renderowania HTML (np. `innerHTML`) lub parsera/sanitizera HTML.
+   - Dodać CSS dla `a` w obrębie `.msg`, aby link:
+     - dziedziczył font i kolor z `.msg`,
+     - był tylko podkreślony,
+     - nie zmieniał koloru po odwiedzeniu (opcjonalnie).
+   - Wymusić `target="_blank"` i `rel="noopener noreferrer"` dla bezpieczeństwa.
+2. **GM.html**
+   - Pozostawić wpisywanie HTML w polu `textarea` (już możliwe), ale trzeba poinformować użytkownika o składni `<a href="...">`.
+
+### 14.4. Czy linki do GIF/MP4/MP3 zadziałają?
+Tak, **przeglądarki zwykle otworzą pliki multimedialne w nowej karcie** i wyświetlą/odtworzą ich zawartość:
+- **GIF**: wyświetla się jako obraz.
+- **MP4**: odtwarzacz wbudowany w przeglądarkę (zależnie od nagłówków `Content-Type`).
+- **MP3**: odtwarzacz audio.
+
+Uwaga: zachowanie zależy od serwera (nagłówki MIME). Jeśli `Content-Type` jest błędny, przeglądarka może pobrać plik zamiast go odtworzyć.
+
+### 14.5. Zagrożenia i ryzyka (pełna lista)
+
+**1) XSS / wykonanie złośliwego kodu**
+- Przejście na HTML oznacza, że każdy wpis w treści może być wykonany jako kod (np. `<script>`, `onerror`, `onclick`).
+- Ryzyko rośnie, jeśli ktoś uzyska dostęp do GM lub do zapisu w Firestore.
+
+**2) Phishing i złośliwe linki**
+- Linki stają się klikalne dla graczy; łatwo wstawić odnośniki do fałszywych stron.
+
+**3) Tabnabbing (target="_blank")**
+- Bez `rel="noopener noreferrer"` strona otwarta w nowej karcie może przejąć `window.opener` i podmienić treść Infoczytnika.
+
+**4) Rozjechanie layoutu / spójności UI**
+- HTML może zawierać tagi zmieniające układ (np. `<style>`, `<div>`, `<table>`, `<img>`).
+- Może to naruszyć wizualną spójność Infoczytnika.
+
+**5) Spójność założeń projektowych**
+- Aktualnie treść jest „bezpiecznym tekstem”.
+- Po zmianie treść staje się potencjalnym kodem wykonywalnym — zmienia to podstawowe założenia bezpieczeństwa projektu.
+
+### 14.6. Wnioski końcowe (dla AI wdrażającego)
+- Funkcjonalność hiperłączy jest **technicznie prosta**, ale **zmienia fundamentalny model bezpieczeństwa**.
+- Jeśli ma zostać wdrożona, zaleca się:
+  - whitelisting tylko `<a>` oraz sanitizację HTML,
+  - wymuszenie `target="_blank"` + `rel="noopener noreferrer"`,
+  - ograniczenie obsługiwanych protokołów do `https://`.
+
+---
+
 KONIEC DOKUMENTU
