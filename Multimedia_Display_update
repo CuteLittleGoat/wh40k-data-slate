@@ -329,3 +329,44 @@ Uwaga: zachowanie zależy od serwera (nagłówki MIME). Jeśli `Content-Type` je
 ---
 
 KONIEC DOKUMENTU
+
+---
+
+## 15) Rozszerzenie: bezpieczne odtwarzanie audio/video bez HTML (rozmowa + wnioski)
+
+### 15.1. Kontekst rozmowy (streszczenie)
+- Użytkownik chce umożliwić odtwarzanie audio/video przez gracza korzystającego z Infoczytnika.
+- Kluczowy wymóg: **zachować spójność tekstu**, bez rozjeżdżania layoutu oraz bez zmiany fontów/kolorów/rozmiarów.
+- Dodatkowe pytanie: czy można ograniczyć hiperłącza do jednej lokalizacji (np. własny FTP/chmura) i czy to rozwiązuje problem potencjalnie niebezpiecznego kodu.
+
+### 15.2. Obecny stan w kodzie (dlaczego HTML nie jest potrzebny)
+- Treść wiadomości w Infoczytniku jest renderowana jako **czysty tekst**:
+  - `el.msg.textContent = text || "";`
+- Brak interpretacji HTML oznacza stabilny layout, brak ryzyka wstrzyknięć i przewidywalny wygląd.
+- Infoczytnik ma już mechanizm odtwarzania audio:
+  - `window.__dsPlayUrlOnce(url)` i użycie `msgUrl` / `pingUrl`.
+
+### 15.3. Rozwiązanie zalecane (bez HTML, stabilny layout)
+#### Wariant A — osobne pole `mediaUrl` w payloadzie (rekomendowany)
+- GM wpisuje URL audio/video w osobnym polu w panelu GM.
+- Infoczytnik nie renderuje linku w treści, tylko:
+  - automatycznie odtwarza media,
+  - albo wyświetla stały, ostylowany przycisk „Odtwórz” w dedykowanym miejscu.
+- **Zaleta:** tekst pozostaje czysty (`textContent`), więc layout jest nienaruszalny.
+
+#### Wariant B — komenda w treści (np. `[[PLAY:URL]]`)
+- GM wpisuje URL w treści, ale w formacie komendy tekstowej.
+- Infoczytnik parsuje `text`, wycina komendę i odtwarza media, a na ekranie wyświetla wyczyszczony tekst.
+- **Zaleta:** nadal brak HTML i brak ryzyka rozjazdu layoutu.
+
+### 15.4. Ograniczenie hiperłączy do jednej lokalizacji (czy to rozwiązuje bezpieczeństwo?)
+- Możliwe jest techniczne ograniczenie linków do jednej domeny/ścieżki (whitelisting).
+- **To ogranicza phishing**, ale **nie rozwiązuje problemu bezpieczeństwa HTML**:
+  - Jeśli renderujesz HTML (np. przez `innerHTML`), nadal istnieje ryzyko XSS i psucia layoutu przez inne tagi lub atrybuty.
+- Wniosek: ograniczenie domeny pomaga tylko **w zakresie docelowego URL**, ale **nie eliminuje ryzyka związanego z HTML**.
+
+### 15.5. Wnioski końcowe (dla AI wdrażającego)
+- Najbezpieczniejszy i najbardziej spójny wizualnie wariant to **odtwarzanie media bez HTML**:
+  - osobne pole `mediaUrl`,
+  - albo komenda tekstowa `[[PLAY:...]]`.
+- To rozwiązanie zachowuje pełną kontrolę nad layoutem i nie narusza stylistyki tekstu.
