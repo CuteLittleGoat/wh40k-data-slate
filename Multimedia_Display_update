@@ -267,4 +267,80 @@ Przykładowo:
 
 ---
 
+## 14) Rozszerzenie: hiperłącza w treści wiadomości (rozmowa + wnioski)
+
+### 14.1. Kontekst rozmowy (streszczenie)
+- Użytkownik chce wpisywać w panelu GM **hiperłącza w formacie HTML**, np. `<a href="...">link</a>`.
+- Oczekiwany efekt: w Infoczytniku link ma wyglądać jak zwykły tekst (font/kolor/rozmiar z ustawień GM), jedynie **podkreślony**.
+- Kliknięcie ma otwierać link w nowej karcie (`target="_blank"`).
+- Pytanie dodatkowe: czy można wstawiać linki do plików `gif`, `mp4`, `mp3`, by przeglądarka wyświetliła ich zawartość.
+
+### 14.2. Obecny stan w kodzie (dlaczego to dziś nie działa)
+- Treść wiadomości w Infoczytniku jest renderowana jako **czysty tekst**:
+  - `el.msg.textContent = text || "";`
+- To oznacza, że HTML (np. `<a href="...">`) nie jest interpretowany i wyświetla się literalnie.
+
+### 14.3. Wymagane zmiany (konceptualnie)
+1. **Infoczytnik.html**
+   - Zamiast `textContent` użyć renderowania HTML (np. `innerHTML`) lub parsera/sanitizera HTML.
+   - Dodać CSS dla `a` w obrębie `.msg`, aby link:
+     - dziedziczył font i kolor z `.msg`,
+     - był tylko podkreślony,
+     - nie zmieniał koloru po odwiedzeniu (opcjonalnie).
+   - Wymusić `target="_blank"` i `rel="noopener noreferrer"` dla bezpieczeństwa.
+2. **GM.html**
+   - Pozostawić wpisywanie HTML w polu `textarea` (już możliwe), ale trzeba poinformować użytkownika o składni `<a href="...">`.
+
+### 14.4. Czy linki do GIF/MP4/MP3 zadziałają?
+Tak, **przeglądarki zwykle otworzą pliki multimedialne w nowej karcie** i wyświetlą/odtworzą ich zawartość:
+- **GIF**: wyświetla się jako obraz.
+- **MP4**: odtwarzacz wbudowany w przeglądarkę (zależnie od nagłówków `Content-Type`).
+- **MP3**: odtwarzacz audio.
+
+Uwaga: zachowanie zależy od serwera (nagłówki MIME). Jeśli `Content-Type` jest błędny, przeglądarka może pobrać plik zamiast go odtworzyć.
+
+### 14.5. Zagrożenia i ryzyka (pełna lista)
+
+#### 1) Rozjechanie layoutu / spójności UI (najbardziej praktyczne ryzyko w trybie lokalnym)
+Wprowadzenie HTML w treści oznacza, że **renderowanie komunikatu zaczyna zależeć od poprawności znaczników**. To zmienia zachowanie UI w sposób bardziej kruchy: drobny błąd w wiadomości może „przejąć” układ ekranu i spowodować nieczytelność. Poniżej konkretne scenariusze „co się stanie po aktualizacji kodu”:
+
+- **Niechciane elementy blokowe** (np. `<div>`, `<table>`, `<h1>`):  
+  Mogą dodać duże marginesy, szerokości lub wysokości, co powoduje „wypchnięcie” tekstu poza obszar `.screen`, przesunięcie prefix/suffix lub nadmierne przewijanie.
+
+- **Wstawienie obrazka/iframe bez kontroli rozmiaru** (`<img>`, `<iframe>`):  
+  Jeśli w treści pojawi się duży obraz/ramka, może zająć cały obszar ekranu, zasłonić prefix/suffix lub spowodować, że tekst będzie niewidoczny bez długiego scrolla.
+
+- **Tagi zmieniające styl globalnie** (`<style>`, `<span style="...">`):  
+  Inline style mogą nadpisać font, kolor, rozmiar lub nawet ukryć elementy (`display:none`). To psuje spójność z layoutem frakcji i ustawieniami z GM.
+
+- **Złamanie spójności wierszy** (np. `<br>` w nadmiarze, `<pre>`):  
+  Nadmiar łamań wierszy lub bloków typu `pre` może „rozciągnąć” treść i spowodować, że na ekranie widać tylko puste linie albo jedną linię tekstu.
+
+- **Błędnie zamknięte tagi**:  
+  Jeśli HTML będzie niepoprawny (np. brak `</a>` lub `</span>`), przeglądarka może „połknąć” resztę treści i podkreślić/wyświetlić wszystko jako jeden link. Efekt wizualny: cały ekran wygląda jak jeden link, a suffix/prefix może zostać „wciągnięty” do środka bloku wiadomości.
+
+- **Przejęcie przestrzeni przez długi, niełamany link**:  
+  Gdy link zawiera bardzo długi URL bez spacji (np. 300 znaków), może przekroczyć szerokość `.screen` i wymusić poziome przewijanie lub „rozepchnąć” kontener, co psuje proporcje layoutu.
+
+- **Zniknięcie prefiksu/sufiksu w praktyce**:  
+  Gdy w treści pojawi się wysoki element (np. obrazek lub tabela), prefix i suffix nadal istnieją, ale gracz musi wykonać długi scroll, by je zobaczyć. W efekcie spójny „ramkowy” układ przestaje być czytelny.
+
+- **Efekt „pustego ekranu”**:  
+  Jeśli HTML zacznie wstawiać dużo pustych elementów (np. `<br>` w nadmiarze), realna treść może zostać zepchnięta daleko w dół, przez co na ekranie widać tylko tło i efekty CRT.
+
+W skrócie: **po aktualizacji kodu wystarczy drobny błąd w HTML, aby cały komunikat wyglądał źle lub stał się nieczytelny**, nawet bez żadnych „ataków” i bez udziału osób trzecich.
+
+#### 2) Spójność założeń projektowych
+- Aktualnie treść jest „bezpiecznym tekstem”.
+- Po zmianie treść staje się HTML, co zwiększa elastyczność, ale wymaga większej dyscypliny w formatowaniu, bo łatwiej przypadkowo zepsuć układ.
+
+### 14.6. Wnioski końcowe (dla AI wdrażającego)
+- Funkcjonalność hiperłączy jest **technicznie prosta**, ale **zmienia fundamentalny model bezpieczeństwa**.
+- Jeśli ma zostać wdrożona, zaleca się:
+  - whitelisting tylko `<a>` oraz sanitizację HTML,
+  - wymuszenie `target="_blank"` + `rel="noopener noreferrer"`,
+  - ograniczenie obsługiwanych protokołów do `https://`.
+
+---
+
 KONIEC DOKUMENTU
